@@ -47,9 +47,8 @@ class Scheduler:
 
         # Statistics
 
-        # Start simulation
-        #simstart = Event('SIMULATION_START', 0, None)
-        #self.eventList.append(simstart)
+        # Start simulation 
+        self.eventList.append(Event('SIMULATION_START', 0, None))
 
     def createMap(self):
         self.cityMap = np.full((self.rows, self.cols), Intersection(self, self.roadLength, self.roadLength))
@@ -111,9 +110,6 @@ class Scheduler:
                     if event.tipus == "END_SERVICE":
                         self.comprovaCua()
 
-        # Recollida d'estadístics
-        self.recollirEstadistics()
-
     def afegirEsdeveniment(self, event):
         # Inserir esdeveniment de forma ordenada
         self.eventList.append(event)
@@ -128,52 +124,6 @@ class Scheduler:
             self.server2.tractarEsdeveniment(event)
             self.server3.tractarEsdeveniment(event)
             self.server4.tractarEsdeveniment(event)
-
-    def comprovaCua(self):
-        auxqueue = Queue()
-        while not self.queue.empty():
-            entitat = self.queue.get()
-            if (self.currentTime - entitat.created_at) > 15:
-                self.clientsperduts = self.clientsperduts + 1
-            else:
-                auxqueue.put(entitat)
-
-        while not auxqueue.empty():
-            self.queue.put(auxqueue.get())
-
-    def recollirEstadistics(self):
-        print("")
-        print("---- STATISTICS ----")
-        print("Customers who payed at checkout 1: " + str(self.server1.entitatstractades))
-        print("Customers who payed at checkout 2: " + str(self.server2.entitatstractades))
-        print("Customers who payed at checkout 3: " + str(self.server3.entitatstractades))
-        print("Customers who payed at checkout 4: " + str(self.server4.entitatstractades))
-        avg1 = avg2 = avg3 = avg4 = 0
-        if self.server1.entitatstractades != 0:
-            avg1 = (self.server1.timeprocessing / self.server1.entitatstractades)
-        elif self.server2.entitatstractades != 0:
-            avg2 = (self.server2.timeprocessing / self.server2.entitatstractades)
-        elif self.server3.entitatstractades != 0:
-            avg3 = (self.server3.timeprocessing / self.server3.entitatstractades)
-        elif self.server4.entitatstractades != 0:
-            avg4 = (self.server4.timeprocessing / self.server4.entitatstractades)
-        print("Average process time of supermarket checkouts: " + str((avg1 + avg2 + avg3 + avg4) / 4))
-        processed = self.server1.entitatstractades + self.server2.entitatstractades + self.server3.entitatstractades + self.server4.entitatstractades
-        print("Average staytime of supermarket queue: " + str(self.staytime / processed))
-
-        if self.clientsperduts == 0:
-            print("No lost customers! :)")
-        else:
-            print("Lost customers: " + str(self.clientsperduts) + " :(")
-            print("Lost customers over total number of customers: " + str(
-                self.clientsperduts / (avg1 + avg2 + avg3 + avg4 + self.clientsperduts) * 100) + "%")
-
-        print("Checkout 1 was busy: " + str((self.server1.timeprocessing / self.simulationtime) * 100) + "% of simulation time")
-        print("Checkout 2 was busy: " + str((self.server2.timeprocessing / self.simulationtime) * 100) + "% of simulation time")
-        print("Checkout 3 was busy: " + str((self.server3.timeprocessing / self.simulationtime) * 100) + "% of simulation time")
-        print("Checkout 4 was busy: " + str((self.server4.timeprocessing / self.simulationtime) * 100) + "% of simulation time")
-        print("")
-
 
 if __name__ == '__main__':
     scheduler = Scheduler()

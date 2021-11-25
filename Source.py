@@ -1,7 +1,6 @@
 from Event import Event
 from random import randint
 
-
 class Source:
     def __init__(self, scheduler, numarribades, prob0, prob1, prob2):
         # inicialitzar element de simulació
