@@ -1,58 +1,84 @@
 from queue import Queue
-from Server import *
 from Source import *
 from Event import Event
-
+import numpy as np
+from Intersection import *
 
 class Scheduler:
     currentTime = 0
     eventList = []
 
     def __init__(self):
-        # Recollim paràmetres de configuració
-        # Nombre d'arribades
+        # Config parameters
+        
+        # Volume of arrivals
         print("")
-        print("Volume of arrivals (1, 2 o 3):")
+        print("Traffic density: (1, 2 o 3):")
         print("1. Low")
         print("2. Medium")
         print("3. High")
-        numarribades = int(input())
-        # Tipus de clients
+        self.trafficDensity = int(input())
+       
+        # City map size
         print("")
-        print("Specify the probability of customers with few products with an integer from 1 to 100:")
-        probcapdubte = int(input())
-        print("Specify the probability of customers with lots of products with an integer from 1 to 100:")
-        probmoltsdubtes = int(input())
-        probpocsdubtes = 100 - (probmoltsdubtes + probcapdubte)
-        # Temps de simulació
+        print("City map size:")
+        print("Rows")
+        self.rows = int(input())
+        print("Cols")
+        self.cols = int(input())
+
+        # Road length
+        print("")
+        print("Road length (number of cars):")
+        self.roadLength = int(input())
+        
+        # Simulation time
         print("Simulation time in minutes:")
         self.simulationtime = int(input())
 
-        # Imprimim els paràmetres escollits
+        # Print chosen parameters
         print("")
         print("SELECTED PARAMETERS:")
-        print("Volume of arrivals: Level" + str(numarribades))
-        print("Customers with few products: " + str(probcapdubte) + "%")
-        print("Customers with some products: " + str(probpocsdubtes) + "%")
-        print("Customers with lots of products: " + str(probmoltsdubtes) + "%")
+        print("Traffic density: " + str(self.trafficDensity))
         print("Simulation time: " + str(self.simulationtime) + " minutes")
 
-        # Creació dels objectes que composen el meu model
-        self.source = Source(self, numarribades, probcapdubte, probpocsdubtes, probmoltsdubtes)
-        self.server1 = Server(self)
-        self.server2 = Server(self)
-        self.server3 = Server(self)
-        self.server4 = Server(self)
-        self.source.creaConnexions(self.server1, self.server2, self.server3, self.server4)
-        self.queue = Queue()
+        # Create a map of intersections
+        self.createMap()
 
-        # Estadístic
-        self.clientsperduts = 0
-        self.staytime = 0
+        # Statistics
 
-        # Iniciem simulació
-        simstart = Event('SIMULATION_START', 0, None)
-        self.eventList.append(simstart)
+        # Start simulation
+        #simstart = Event('SIMULATION_START', 0, None)
+        #self.eventList.append(simstart)
+
+    def createMap(self):
+        self.cityMap = np.full((self.rows, self.cols), Intersection(self, self.roadLength, self.roadLength))
+
+        for i,row in enumerate(self.cityMap):
+            for j,inter in enumerate(row):
+                # Horizontal connections
+                # Street direction: right
+                if i % 2 == 0:
+                    if j != self.cols-1:
+                        inter.connectHOut(self.cityMap[i][j+1].hIn)
+                        print("Intersection (" + str(i) + "," + str(j) +") connected to (" + str(i) + "," + str(j+1) +")")
+                # Street direction: left
+                else:
+                    if j != 0:
+                        inter.connectHOut(self.cityMap[i][j-1].hIn)
+                        print("Intersection (" + str(i) + "," + str(j) +") connected to (" + str(i) + "," + str(j-1) +")")
+
+                # Vertical connections
+                # Street direction: down
+                if j % 2 == 0:
+                    if i != self.rows-1:
+                        inter.connectHOut(self.cityMap[i+1][j].vIn)
+                        print("Intersection (" + str(i) + "," + str(j) +") connected to (" + str(i+1) + "," + str(j) +")")
+                # Street direction: up
+                else:
+                    if i != 0:
+                        inter.connectHOut(self.cityMap[i-1][j].vIn)
+                        print("Intersection (" + str(i) + "," + str(j) +") connected to (" + str(i-1) + "," + str(j) +")")
 
     def run(self):
         # Rellotge de simulacio a 0
@@ -151,4 +177,4 @@ class Scheduler:
 
 if __name__ == '__main__':
     scheduler = Scheduler()
-    scheduler.run()
+    #scheduler.run()

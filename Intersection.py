@@ -13,8 +13,8 @@ class Intersection:
         # roads
         self.maxSizeH = maxSizeH
         self.maxSizeV = maxSizeV
-        self.hIn = queue.Queue(maxSizeH)
-        self.vIn = queue.Queue(maxSizeV)
+        self.hIn = Queue(maxSizeH)
+        self.vIn = Queue(maxSizeV)
 
     def simulationStart(self):
         self.Vstate = "idle"

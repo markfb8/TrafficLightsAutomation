@@ -1,5 +1,4 @@
 from Event import Event
-from Client import Client
 from random import randint
 
 
