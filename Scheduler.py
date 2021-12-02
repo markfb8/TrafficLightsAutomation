@@ -17,7 +17,7 @@ class Scheduler:
         print("1. Low")
         print("2. Medium")
         print("3. High")
-        self.trafficDensity = int(input())
+        self.trafficvolume = int(input())
        
         # City map size
         print("")
@@ -39,11 +39,14 @@ class Scheduler:
         # Print chosen parameters
         print("")
         print("SELECTED PARAMETERS:")
-        print("Traffic density: " + str(self.trafficDensity))
+        print("Traffic density: " + str(self.trafficvolume))
         print("Simulation time: " + str(self.simulationtime) + " minutes")
 
         # Create a map of intersections
         self.createMap()
+
+        # Car generator
+        self.source = Source(self)
 
         # Statistics
 
@@ -91,8 +94,8 @@ class Scheduler:
             self.currentTime = event.time
             # Deleguem l'acció a realitzar de l'esdeveniment a l'objecte que l'ha generat
             # També podríem delegar l'acció a un altre objecte
-            if event.entitat is None:
-                if event.tipus == "SIMULATION_START":
+            if event.entity is None:
+                if event.type == "SIMULATION_START":
                     # comunicar a tots els objectes que cal preparar-se
                     self.source.tractarEsdeveniment(event)
                     self.server1.tractarEsdeveniment(event)
@@ -100,24 +103,24 @@ class Scheduler:
                     self.server3.tractarEsdeveniment(event)
                     self.server4.tractarEsdeveniment(event)
             else:
-                if event.tipus == 'NEW_SERVICE':
+                if event.type == 'NEW_SERVICE':
                     if not self.queue.empty():
                         c = self.queue.get()
                         self.staytime = self.staytime + (self.currentTime - c.created_at)
-                        event.entitat.recullEntitat(event.time, c)
+                        event.entity.recullentity(event.time, c)
                 else:
-                    event.entitat.tractarEsdeveniment(event)
-                    if event.tipus == "END_SERVICE":
+                    event.entity.tractarEsdeveniment(event)
+                    if event.type == "END_SERVICE":
                         self.comprovaCua()
 
-    def afegirEsdeveniment(self, event):
+    def addEvent(self, event):
         # Inserir esdeveniment de forma ordenada
         self.eventList.append(event)
         # Ordenar eventlist per temps
         self.eventList.sort(key=lambda x: x.time, reverse=False)
 
     def tractarEsdeveniment(self, event):
-        if event.tipus == "SIMULATION_START":
+        if event.type == "SIMULATION_START":
             # comunicar a tots els objectes que cal preparar-se
             self.source.tractarEsdeveniment(event)
             self.server1.tractarEsdeveniment(event)

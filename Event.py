@@ -1,6 +1,6 @@
 class Event:
-    def __init__(self, tipus, time, direction, entitat):
-        self.tipus = tipus
+    def __init__(self, eventType, time, direction, entity):
+        self.eventType = eventType
         self.time = time
         self.direction = direction
-        self.entitat = entitat
+        self.entity = entity

@@ -27,26 +27,26 @@ class Intersection:
         self.intersectionOutH = hOut
     
     def tractarEsdeveniment(self, event):
-        if event.tipus == 'SIMULATION_START':
+        if event.type == 'SIMULATION_START':
             self.simulationStart()
-        elif event.tipus == 'ARRIVAL':
+        elif event.type == 'ARRIVAL':
             if event.direction == 'VERTICAL':
-                self.processVCarArrival(event.entitat)
+                self.processVCarArrival(event.entity)
             elif event.direction == 'HORIZONTAL':
-                self.processHCarArrival(event.entitat)
-        elif event.tipus == 'SWITCH_TRAFFIC_LIGHT':
+                self.processHCarArrival(event.entity)
+        elif event.type == 'SWITCH_TRAFFIC_LIGHT':
             self.switchTrafficLight()
-        elif event.tipus == 'MOVE_CAR':
+        elif event.type == 'MOVE_CAR':
             moveCar(event.direction)
     
-    def processVCarArrival(self, entitat):
+    def processVCarArrival(self, entity):
         if len(self.vOut) + 1 < self.maxSizeV:
-            self.vOut.put(entitat)
+            self.vOut.put(entity)
         else: self.Vstate = "busy"
 
-    def processHCarArrival(self, entitat):
+    def processHCarArrival(self, entity):
         if len(self.hOut) + 1 < self.maxSizeH:
-            self.hOut.put(entitat)
+            self.hOut.put(entity)
         else: self.Hstate = "busy"
     
     def switchTrafficLight(self):
