@@ -83,51 +83,26 @@ class Scheduler:
                         print("Intersection (" + str(i) + "," + str(j) +") connected to (" + str(i-1) + "," + str(j) +")")
 
     def run(self):
-        # Rellotge de simulacio a 0
+        # Simulation time at 0
         self.currentTime = 0
-        # Bucle de simulació (condició fi simulació llista buida)
+        # Simulation loop (stops when no events remain at queue or simulation time is over)
         while self.eventList and self.currentTime <= self.simulationtime:
-            # Recuperem event simulacio i el treiem de la llista
             event = self.eventList[0]
             self.eventList.pop(0)
-            # Actualitzem el rellotge de simulacio
             self.currentTime = event.time
-            # Deleguem l'acció a realitzar de l'esdeveniment a l'objecte que l'ha generat
-            # També podríem delegar l'acció a un altre objecte
+            # Event entity processes the event
             if event.entity is None:
-                if event.type == "SIMULATION_START":
-                    # comunicar a tots els objectes que cal preparar-se
-                    self.source.tractarEsdeveniment(event)
-                    self.server1.tractarEsdeveniment(event)
-                    self.server2.tractarEsdeveniment(event)
-                    self.server3.tractarEsdeveniment(event)
-                    self.server4.tractarEsdeveniment(event)
+                if event.eventType == "SIMULATION_START":
+                    self.source.processEvent(event)
             else:
-                if event.type == 'NEW_SERVICE':
-                    if not self.queue.empty():
-                        c = self.queue.get()
-                        self.staytime = self.staytime + (self.currentTime - c.created_at)
-                        event.entity.recullentity(event.time, c)
-                else:
-                    event.entity.tractarEsdeveniment(event)
-                    if event.type == "END_SERVICE":
-                        self.comprovaCua()
+                event.entity.processEvent(event)
+                if event.eventType == 'NEW_CAR':
+                    self.source.processEvent(event)
 
     def addEvent(self, event):
-        # Inserir esdeveniment de forma ordenada
         self.eventList.append(event)
-        # Ordenar eventlist per temps
         self.eventList.sort(key=lambda x: x.time, reverse=False)
-
-    def tractarEsdeveniment(self, event):
-        if event.type == "SIMULATION_START":
-            # comunicar a tots els objectes que cal preparar-se
-            self.source.tractarEsdeveniment(event)
-            self.server1.tractarEsdeveniment(event)
-            self.server2.tractarEsdeveniment(event)
-            self.server3.tractarEsdeveniment(event)
-            self.server4.tractarEsdeveniment(event)
 
 if __name__ == '__main__':
     scheduler = Scheduler()
-    #scheduler.run()
+    scheduler.run()

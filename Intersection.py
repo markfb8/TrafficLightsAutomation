@@ -5,8 +5,6 @@ class Intersection:
 
     def __init__(self, scheduler, maxSizeH, maxSizeV):
         # init
-        self.Vstate = "idle"
-        self.Hstate = "idle"
         self.scheduler = scheduler
         self.VtrafficLight = "GREEN"
         self.HtrafficLight = "RED"
@@ -16,38 +14,24 @@ class Intersection:
         self.hIn = Queue(maxSizeH)
         self.vIn = Queue(maxSizeV)
 
-    def simulationStart(self):
-        self.Vstate = "idle"
-        self.Hstate = "idle"
-
     def connectVOut(self, vOut):
-        self.intersectionOutV = vOut
+        self.vOut = vOut
 
     def connectHOut(self, hOut):
-        self.intersectionOutH = hOut
+        self.hOut = hOut
     
-    def tractarEsdeveniment(self, event):
-        if event.type == 'SIMULATION_START':
-            self.simulationStart()
-        elif event.type == 'ARRIVAL':
+    def processEvent(self, event):
+        if event.eventType == 'NEW_CAR': # if street is not full a car spawns
             if event.direction == 'VERTICAL':
-                self.processVCarArrival(event.entity)
+                if len(self.vIn) + 1 < self.maxSizeV:
+                    self.vIn.put(Car(event.time))
             elif event.direction == 'HORIZONTAL':
-                self.processHCarArrival(event.entity)
-        elif event.type == 'SWITCH_TRAFFIC_LIGHT':
+                if len(self.hIn) + 1 < self.maxSizeH:
+                    self.hIn.put(Car(event.time))
+        elif event.eventType == 'SWITCH_TRAFFIC_LIGHT':
             self.switchTrafficLight()
-        elif event.type == 'MOVE_CAR':
-            moveCar(event.direction)
-    
-    def processVCarArrival(self, entity):
-        if len(self.vOut) + 1 < self.maxSizeV:
-            self.vOut.put(entity)
-        else: self.Vstate = "busy"
-
-    def processHCarArrival(self, entity):
-        if len(self.hOut) + 1 < self.maxSizeH:
-            self.hOut.put(entity)
-        else: self.Hstate = "busy"
+        elif event.eventType == 'MOVE_CAR':
+            self.moveCar(event.direction)
     
     def switchTrafficLight(self):
         if(self.VtrafficLight == 'RED'):
@@ -58,26 +42,24 @@ class Intersection:
             self.VtrafficLight = 'RED'
             self.HtrafficLight == 'GREEN'
             scheduleNextCar('HORIZONTAL')
-        self.scheduler.afegirEsdeveniment(Event('SWITCH_TRAFFIC_LIGHT', self.scheduler.currentTime + 20, None, self))
+        self.scheduler.addEvent(Event('SWITCH_TRAFFIC_LIGHT', self.scheduler.currentTime + 20, None, self))
 
     def moveCar(direction):
         if direction == 'VERTICAL':
-            if not self.intersectionOutV.Vstate == "busy":
-                self.Vstate = "idle"
-                self.intersectionOutV.vIn.put(self.vIn.get())
+            if len(self.vOut) + 1 < maxSizeV:
+                self.vOut.put(self.vIn.get())
         elif direction == 'HORIZONTAL':
-            if not self.intersectionOutH.Hstate == "busy":
-                self.Hstate = "idle"
-                self.intersectionOutH.hIn.put(self.hIn.get())
+            if len(self.hOut) + 1 < maxSizeH:
+                self.hOut.put(self.hIn.get())
         self.scheduleNextCar(direction)
 
     def scheduleNextCar(direction):
         if direction == 'VERTICAL' and self.VtrafficLight == 'GREEN':
             if not self.vIn.isEmpty():
-                self.scheduler.afegirEsdeveniment(Event('MOVE_CAR', self.scheduler.currentTime + 2, direction, self))
+                self.scheduler.addEvent(Event('MOVE_CAR', self.scheduler.currentTime + 2, direction, self))
         if direction == 'HORIZONTAL' and self.HtrafficLight == 'GREEN':
             if not self.hIn.isEmpty():
-                self.scheduler.afegirEsdeveniment(Event('MOVE_CAR', self.scheduler.currentTime + 2, direction, self))
+                self.scheduler.addEvent(Event('MOVE_CAR', self.scheduler.currentTime + 2, direction, self))
         
         
 
