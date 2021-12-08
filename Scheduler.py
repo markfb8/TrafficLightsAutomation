@@ -1,3 +1,4 @@
+import math
 from queue import Queue
 from Source import *
 from Event import Event
@@ -5,12 +6,13 @@ import numpy as np
 from Intersection import *
 
 class Scheduler:
+    cars = 0
     currentTime = 0
+    out = Queue()
     eventList = []
 
     def __init__(self):
         # Config parameters
-        
         # Volume of arrivals
         print("")
         print("Traffic density: (1, 2 o 3):")
@@ -49,9 +51,10 @@ class Scheduler:
         self.source = Source(self)
 
         # Statistics
+        self.stayTime = 0
 
         # Start simulation 
-        self.eventList.append(Event('SIMULATION_START', 0, None))
+        self.eventList.append(Event('SIMULATION_START', 0, None, None))
 
     def createMap(self):
         self.cityMap = np.full((self.rows, self.cols), Intersection(self, self.roadLength, self.roadLength))
@@ -63,24 +66,29 @@ class Scheduler:
                 if i % 2 == 0:
                     if j != self.cols-1:
                         inter.connectHOut(self.cityMap[i][j+1].hIn)
-                        print("Intersection (" + str(i) + "," + str(j) +") connected to (" + str(i) + "," + str(j+1) +")")
+                    else:
+                        inter.connectVOut(self.out)
+
                 # Street direction: left
                 else:
                     if j != 0:
                         inter.connectHOut(self.cityMap[i][j-1].hIn)
-                        print("Intersection (" + str(i) + "," + str(j) +") connected to (" + str(i) + "," + str(j-1) +")")
+                    else:
+                        inter.connectVOut(self.out)
 
                 # Vertical connections
                 # Street direction: down
                 if j % 2 == 0:
                     if i != self.rows-1:
-                        inter.connectHOut(self.cityMap[i+1][j].vIn)
-                        print("Intersection (" + str(i) + "," + str(j) +") connected to (" + str(i+1) + "," + str(j) +")")
+                        inter.connectVOut(self.cityMap[i+1][j].vIn)
+                    else:
+                        inter.connectVOut(self.out)
                 # Street direction: up
                 else:
                     if i != 0:
-                        inter.connectHOut(self.cityMap[i-1][j].vIn)
-                        print("Intersection (" + str(i) + "," + str(j) +") connected to (" + str(i-1) + "," + str(j) +")")
+                        inter.connectVOut(self.cityMap[i-1][j].vIn)
+                    else:
+                        inter.connectVOut(self.out)
 
     def run(self):
         # Simulation time at 0
@@ -97,11 +105,23 @@ class Scheduler:
             else:
                 event.entity.processEvent(event)
                 if event.eventType == 'NEW_CAR':
+
                     self.source.processEvent(event)
+
+        self.statistics()
 
     def addEvent(self, event):
         self.eventList.append(event)
         self.eventList.sort(key=lambda x: x.time, reverse=False)
+
+    def statistics(self):
+        print(" ")
+        print("---- STATISTICS ----")
+        print("Cars created: " + str(self.source.createdCars))
+        print("Cars eliminated: " + str(self.out.qsize()))
+        print("Average waiting time: " + str())
+
+
 
 if __name__ == '__main__':
     scheduler = Scheduler()

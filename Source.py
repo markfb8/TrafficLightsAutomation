@@ -38,11 +38,17 @@ class Source:
                         newEvent = self.nextArrival(self.scheduler.currentTime, 'VERTICAL', inter)
 
                     self.scheduler.addEvent(newEvent)
+                    self.scheduler.addEvent(self.startLights(self.scheduler.currentTime, None, inter))
+
+
 
 
     def nextArrival(self, time, direction, entity):
         addedtime = self.calculateAddedTime()
         return Event('NEW_CAR', time + addedtime, direction, entity)
+
+    def startLights(self, time, direction, entity):
+        return Event('SWITCH_TRAFFIC_LIGHT', time, direction, entity)
 
 
     def scheduleNextArrival(self, event):
@@ -54,8 +60,8 @@ class Source:
 
     def calculateAddedTime(self):
         if self.trafficvolume == 1:
-            return randint(5, 10)
+            return randint(80, 200)
         elif self.trafficvolume == 2:
-            return randint(2, 5)
+            return randint(20, 80)
         elif self.trafficvolume == 3:
-            return randint(1, 2)
+            return randint(5, 20)
