@@ -36,13 +36,13 @@ class Scheduler:
         
         # Simulation time
         print("Simulation time in minutes:")
-        self.simulationtime = int(input())
+        self.simulationtime = int(input())*60
 
         # Print chosen parameters
         print("")
         print("SELECTED PARAMETERS:")
         print("Traffic density: " + str(self.trafficvolume))
-        print("Simulation time: " + str(self.simulationtime) + " minutes")
+        print("Simulation time: " + str(self.simulationtime/60) + " minutes")
 
         # Create a map of intersections
         self.createMap()

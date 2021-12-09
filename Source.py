@@ -60,8 +60,8 @@ class Source:
 
     def calculateAddedTime(self):
         if self.trafficvolume == 1:
-            return randint(80, 200)
+            return randint(200, 1000)
         elif self.trafficvolume == 2:
-            return randint(20, 80)
+            return randint(60, 200)
         elif self.trafficvolume == 3:
-            return randint(5, 20)
+            return randint(30, 60)
