@@ -119,6 +119,7 @@ class Scheduler:
         print("---- STATISTICS ----")
         print("Cars created: " + str(self.source.createdCars))
         print("Cars eliminated: " + str(self.out.qsize()))
+        print("Percentage of cars that have travessed the model: " + str(self.out.qsize()/self.source.createdCars))
         print("Average waiting time: " + str())
 
 
