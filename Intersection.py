@@ -45,15 +45,21 @@ class Intersection:
             self.HtrafficLight = 'GREEN'
             self.scheduleNextCar('HORIZONTAL')
 
-        self.scheduler.addEvent(Event('SWITCH_TRAFFIC_LIGHT', self.scheduler.currentTime + 20, None, self))
+        self.scheduler.addEvent(Event('SWITCH_TRAFFIC_LIGHT', self.scheduler.currentTime + 40, None, self))
 
     def moveCar(self, direction):
         if direction == 'VERTICAL':
             if (not self.vIn.empty()) and (self.vOut.maxsize == 0 or self.vOut.qsize() + 1 < self.vOut.maxsize):
-                self.vOut.put(self.vIn.get())
+                car = self.vIn.get()
+                car.addTime(self.scheduler.currentTime - car.time)
+                car.newTime(self.scheduler.currentTime)
+                self.vOut.put(car)
         elif direction == 'HORIZONTAL':
             if (not self.vIn.empty()) and (self.vOut.maxsize == 0 or self.hOut.qsize() + 1 < self.hOut.maxsize):
-                self.hOut.put(self.hIn.get())
+                car = self.hIn.get()
+                car.addTime(self.scheduler.currentTime - car.time)
+                car.newTime(self.scheduler.currentTime)
+                self.hOut.put(car)
         self.scheduleNextCar(direction)
 
     def scheduleNextCar(self, direction):

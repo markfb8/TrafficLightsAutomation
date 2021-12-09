@@ -114,13 +114,24 @@ class Scheduler:
         self.eventList.append(event)
         self.eventList.sort(key=lambda x: x.time, reverse=False)
 
+    def calcWaitingTime(self):
+        time = 0
+        i = 0
+
+        while not self.out.empty():
+            time += self.out.get().waitingTime
+            i += 1
+
+        return time / i
+
+
     def statistics(self):
         print(" ")
         print("---- STATISTICS ----")
         print("Cars created: " + str(self.source.createdCars))
         print("Cars eliminated: " + str(self.out.qsize()))
         print("Percentage of cars that have travessed the model: " + str(self.out.qsize()/self.source.createdCars))
-        print("Average waiting time: " + str())
+        print("Average waiting time: " + str(self.calcWaitingTime()))
 
 
 
