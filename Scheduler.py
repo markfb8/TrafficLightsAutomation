@@ -122,7 +122,12 @@ class Scheduler:
             time += self.out.get().waitingTime
             i += 1
 
-        return time / i
+        if i > 0:
+            average_waiting_time = time / i
+        else:
+            average_waiting_time = 'no cars left the simulator'
+
+        return average_waiting_time
 
 
     def statistics(self):
