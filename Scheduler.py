@@ -7,7 +7,7 @@ from Intersection import *
 
 class Scheduler:
     cars = 0
-    currentTime = 0
+    current_time = 0
     out = Queue()
     eventList = []
 
@@ -19,7 +19,7 @@ class Scheduler:
         print("1. Low")
         print("2. Medium")
         print("3. High")
-        self.trafficvolume = int(input())
+        self.traffic_volume = int(input())
        
         # City map size
         print("")
@@ -32,17 +32,17 @@ class Scheduler:
         # Road length
         print("")
         print("Road length (number of cars):")
-        self.roadLength = int(input())
+        self.road_length = int(input())
         
         # Simulation time
         print("Simulation time in minutes:")
-        self.simulationtime = int(input())*60
+        self.simulation_time = int(input()) * 60
 
         # Print chosen parameters
         print("")
         print("SELECTED PARAMETERS:")
-        print("Traffic density: " + str(self.trafficvolume))
-        print("Simulation time: " + str(self.simulationtime/60) + " minutes")
+        print("Traffic density: " + str(self.traffic_volume))
+        print("Simulation time: " + str(self.simulation_time / 60) + " minutes")
 
         # Create a map of intersections
         self.createMap()
@@ -57,22 +57,22 @@ class Scheduler:
         self.eventList.append(Event('SIMULATION_START', 0, None, None))
 
     def createMap(self):
-        self.cityMap = np.full((self.rows, self.cols), Intersection(self, self.roadLength, self.roadLength))
+        self.city_map = np.full((self.rows, self.cols), Intersection(self, self.road_length, self.road_length))
 
-        for i,row in enumerate(self.cityMap):
+        for i,row in enumerate(self.city_map):
             for j,inter in enumerate(row):
                 # Horizontal connections
                 # Street direction: right
                 if i % 2 == 0:
                     if j != self.cols-1:
-                        inter.connectHOut(self.cityMap[i][j+1].hIn)
+                        inter.connectHOut(self.city_map[i][j + 1].hIn)
                     else:
                         inter.connectVOut(self.out)
 
                 # Street direction: left
                 else:
                     if j != 0:
-                        inter.connectHOut(self.cityMap[i][j-1].hIn)
+                        inter.connectHOut(self.city_map[i][j - 1].hIn)
                     else:
                         inter.connectVOut(self.out)
 
@@ -80,24 +80,24 @@ class Scheduler:
                 # Street direction: down
                 if j % 2 == 0:
                     if i != self.rows-1:
-                        inter.connectVOut(self.cityMap[i+1][j].vIn)
+                        inter.connectVOut(self.city_map[i + 1][j].vIn)
                     else:
                         inter.connectVOut(self.out)
                 # Street direction: up
                 else:
                     if i != 0:
-                        inter.connectVOut(self.cityMap[i-1][j].vIn)
+                        inter.connectVOut(self.city_map[i - 1][j].vIn)
                     else:
                         inter.connectVOut(self.out)
 
     def run(self):
         # Simulation time at 0
-        self.currentTime = 0
+        self.current_time = 0
         # Simulation loop (stops when no events remain at queue or simulation time is over)
-        while self.eventList and self.currentTime <= self.simulationtime:
+        while self.eventList and self.current_time <= self.simulation_time:
             event = self.eventList[0]
             self.eventList.pop(0)
-            self.currentTime = event.time
+            self.current_time = event.time
             # Event entity processes the event
             if event.entity is None:
                 if event.eventType == "SIMULATION_START":
@@ -122,10 +122,7 @@ class Scheduler:
             time += self.out.get().waitingTime
             i += 1
 
-        if i > 0:
-            average_waiting_time = time / i
-        else:
-            average_waiting_time = 'no cars left the simulator'
+        average_waiting_time = time / i if i > 0 else 'no cars left the simulator'
 
         return average_waiting_time
 

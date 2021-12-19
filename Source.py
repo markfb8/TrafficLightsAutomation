@@ -1,13 +1,13 @@
 from Event import Event
 from random import randint
 
+
 class Source:
     def __init__(self, scheduler):
-        self.trafficvolume = scheduler.trafficvolume
+        self.traffic_volume = scheduler.traffic_volume
         self.scheduler = scheduler
-        self.cityMap = scheduler.cityMap
+        self.city_map = scheduler.city_map
         self.createdCars = 0
-
 
     def processEvent(self, event):
         if event.eventType == 'SIMULATION_START':
@@ -15,53 +15,47 @@ class Source:
         elif event.eventType == 'NEW_CAR':
             self.scheduleNextArrival(event)
 
-
     def simulationStart(self):
-        for i,row in enumerate(self.cityMap):
-            for j,inter in enumerate(row):
-                    # Horizontal
-                    # Street direction: right
-                    if i % 2 == 0 and j == 0:
-                        newEvent = self.nextArrival(self.scheduler.currentTime, 'HORIZONTAL', inter)
-                    # Street direction: left
-                    elif j == len(self.cityMap[0]) - 1:
-                        newEvent = self.nextArrival(self.scheduler.currentTime, 'HORIZONTAL', inter)
+        for i, row in enumerate(self.city_map):
+            for j, inter in enumerate(row):
+                # Horizontal
+                # Street direction: right
+                if i % 2 == 0 and j == 0:
+                    new_event = self.nextArrival(self.scheduler.current_time, 'HORIZONTAL', inter)
+                # Street direction: left
+                elif j == len(self.city_map[0]) - 1:
+                    new_event = self.nextArrival(self.scheduler.current_time, 'HORIZONTAL', inter)
 
-                    self.scheduler.addEvent(newEvent)
+                self.scheduler.addEvent(new_event)
 
-                    # Vertical
-                    # Street direction: down
-                    if j % 2 == 0 and i == 0:
-                        newEvent = self.nextArrival(self.scheduler.currentTime, 'VERTICAL', inter)
-                    # Street direction: up
-                    elif len(self.cityMap) - 1:
-                        newEvent = self.nextArrival(self.scheduler.currentTime, 'VERTICAL', inter)
+                # Vertical
+                # Street direction: down
+                if j % 2 == 0 and i == 0:
+                    new_event = self.nextArrival(self.scheduler.current_time, 'VERTICAL', inter)
+                # Street direction: up
+                elif len(self.city_map) - 1:
+                    new_event = self.nextArrival(self.scheduler.current_time, 'VERTICAL', inter)
 
-                    self.scheduler.addEvent(newEvent)
-                    self.scheduler.addEvent(self.startLights(self.scheduler.currentTime, None, inter))
-
-
-
+                self.scheduler.addEvent(new_event)
+                self.scheduler.addEvent(self.startLights(self.scheduler.current_time, None, inter))
 
     def nextArrival(self, time, direction, entity):
-        addedtime = self.calculateAddedTime()
-        return Event('NEW_CAR', time + addedtime, direction, entity)
+        added_time = self.calculateAddedTime()
+        return Event('NEW_CAR', time + added_time, direction, entity)
 
     def startLights(self, time, direction, entity):
         return Event('SWITCH_TRAFFIC_LIGHT', time, direction, entity)
 
-
     def scheduleNextArrival(self, event):
         self.createdCars = self.createdCars + 1
         # Schedule next car creation
-        newEvent = self.nextArrival(event.time, event.direction, event.entity)
-        self.scheduler.addEvent(newEvent)
-
+        new_event = self.nextArrival(event.time, event.direction, event.entity)
+        self.scheduler.addEvent(new_event)
 
     def calculateAddedTime(self):
-        if self.trafficvolume == 1:
+        if self.traffic_volume == 1:
             return randint(200, 1000)
-        elif self.trafficvolume == 2:
+        elif self.traffic_volume == 2:
             return randint(60, 200)
-        elif self.trafficvolume == 3:
+        elif self.traffic_volume == 3:
             return randint(30, 60)
