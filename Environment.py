@@ -2,21 +2,21 @@ import gym
 from gym import spaces
 import numpy as np
 
-from TrainingScheduler import TrainingScheduler
+from Scheduler import Scheduler
 
 
 class DynamicTrafficControlEnv(gym.Env):
-    def __init__(self, num_intersections, road_length, scheduler: TrainingScheduler):
+    def __init__(self, num_intersections, road_length, scheduler: Scheduler):
         self.scheduler = scheduler
         super(DynamicTrafficControlEnv, self).__init__()
 
         self.action_space = spaces.Box(np.zeros(num_intersections), np.ones(num_intersections), dtype=np.uint8)
         self.observation_space = spaces.Dict({
-            "lights_settings": spaces.Box(low=-5, high=5, shape=(1, num_intersections), dtype=np.uint8),
+            "lights_settings": spaces.Box(low=-3, high=3, shape=(1, num_intersections), dtype=np.uint8),
             "horizontal_num_of_cars": spaces.Box(low=0, high=road_length, shape=(1, num_intersections), dtype=np.uint8),
             "vertical_num_of_cars": spaces.Box(low=0, high=road_length, shape=(1, num_intersections), dtype=np.uint8),
-            "horizontal_waiting_time": spaces.Box(low=0, high=65535, shape=(num_intersections, road_length), dtype=np.uint8),
-            "vertical_waiting_time": spaces.Box(low=0, high=65535, shape=(num_intersections, road_length), dtype=np.uint8)
+            "horizontal_waiting_time": spaces.Box(low=-1, high=65535, shape=(num_intersections, road_length), dtype=np.int32),
+            "vertical_waiting_time": spaces.Box(low=-1, high=65535, shape=(num_intersections, road_length), dtype=np.int32)
         })
 
     def reset(self):

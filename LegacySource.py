@@ -10,9 +10,9 @@ class Source:
         self.createdCars = 0
 
     def processEvent(self, event):
-        if event.eventType == 'SIMULATION_START':
+        if event.event_type == 'SIMULATION_START':
             self.simulationStart()
-        elif event.eventType == 'NEW_CAR':
+        elif event.event_type == 'NEW_CAR':
             self.scheduleNextArrival(event)
 
     def simulationStart(self):

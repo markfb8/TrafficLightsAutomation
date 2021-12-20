@@ -1,8 +1,8 @@
 from os.path import exists
 from stable_baselines3 import PPO
 
-from TrainingEnvironment import DynamicTrafficControlEnv
-from TrainingScheduler import TrainingScheduler
+from Environment import DynamicTrafficControlEnv
+from Scheduler import Scheduler
 
 
 class Program:
@@ -26,7 +26,7 @@ class Program:
         self.simulation_time = int(input('\nSimulation time in minutes: ')) * 60
 
     def create_scheduler(self):
-        self.scheduler = TrainingScheduler(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
+        self.scheduler = Scheduler(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
 
     def train(self):
         env = DynamicTrafficControlEnv(self.rows * self.cols, self.road_length, self.scheduler)
@@ -71,6 +71,7 @@ class Program:
             done = self.scheduler.advance_step(action)
             num_of_events = num_of_events + 1
 
+        self.scheduler.print_statistics()
         print('num of events is ' + str(num_of_events))
 
 

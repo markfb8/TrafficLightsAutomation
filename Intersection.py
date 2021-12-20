@@ -1,71 +1,68 @@
 from Car import Car
 from Event import Event
 from queue import Queue
+import MapManager
+
 
 class Intersection:
 
-    def __init__(self, scheduler, maxSizeH, maxSizeV):
+    def __init__(self, scheduler, max_size_h, max_size_v):
         # init
         self.scheduler = scheduler
-        self.VtrafficLight = "GREEN"
-        self.HtrafficLight = "RED"
+        self.v_traffic_light = "GREEN"
+        self.h_traffic_light = "RED"
         # roads
-        self.maxSizeH = maxSizeH
-        self.maxSizeV = maxSizeV
-        self.hIn = Queue(maxSizeH)
-        self.vIn = Queue(maxSizeV)
+        self.max_size_h = max_size_h
+        self.max_size_v = max_size_v
+        self.h_in = Queue(max_size_h)
+        self.v_in = Queue(max_size_v)
+        self.v_out = None
+        self.h_out = None
 
-    def connectVOut(self, vOut):
-        self.vOut = vOut
+    def connectVOut(self, v_out):
+        self.v_out = v_out
 
-    def connectHOut(self, hOut):
-        self.hOut = hOut
-    
+    def connectHOut(self, h_out):
+        self.h_out = h_out
+
     def processEvent(self, event):
-        if event.eventType == 'NEW_CAR': # if street is not full a car spawns
+        if event.event_type == 'NEW_CAR':
+            MapManager.schedule_next_arrival(self.scheduler, event)
             if event.direction == 'VERTICAL':
-                if self.vIn.qsize() + 1 < self.maxSizeV:
-                    self.vIn.put(Car(event.time))
+                if self.v_in.qsize() + 1 < self.max_size_v:
+                    self.v_in.put(Car(event.time))
             elif event.direction == 'HORIZONTAL':
-                if self.hIn.qsize() + 1 < self.maxSizeH:
-                    self.hIn.put(Car(event.time))
-        elif event.eventType == 'SWITCH_TRAFFIC_LIGHT':
-            self.switchTrafficLight()
-        elif event.eventType == 'MOVE_CAR':
-            self.moveCar(event.direction)
-    
+                if self.h_in.qsize() + 1 < self.max_size_h:
+                    self.h_in.put(Car(event.time))
+        elif event.event_type == 'MOVE_CAR':
+            self.moveCar(event)
+
     def switchTrafficLight(self):
-        if(self.VtrafficLight == 'RED'):
-            self.HtrafficLight = 'RED'
-            self.VtrafficLight = 'GREEN'
-            self.scheduleNextCar('VERTICAL')
+        self.v_traffic_light = 'GREEN' if self.v_traffic_light == 'RED' else 'RED'
+        self.h_traffic_light = 'GREEN' if self.h_traffic_light == 'RED' else 'RED'
 
-        elif(self.VtrafficLight == 'GREEN'):
-            self.VtrafficLight = 'RED'
-            self.HtrafficLight = 'GREEN'
-            self.scheduleNextCar('HORIZONTAL')
+        if self.v_traffic_light == 'GREEN':
+            self.scheduler.addEvent(Event('MOVE_CAR', self.scheduler.current_time + 5, "VERTICAL", self))
+        else:
+            self.scheduler.addEvent(Event('MOVE_CAR', self.scheduler.current_time + 5, "HORIZONTAL", self))
 
-        self.scheduler.addEvent(Event('SWITCH_TRAFFIC_LIGHT', self.scheduler.current_time + 40, None, self))
-
-    def moveCar(self, direction):
-        if direction == 'VERTICAL':
-            if (not self.vIn.empty()) and (self.vOut.maxsize == 0 or self.vOut.qsize() + 1 < self.vOut.maxsize):
-                car = self.vIn.get()
+    def moveCar(self, event):
+        if event.direction == 'VERTICAL':
+            if (self.v_traffic_light == 'GREEN' and not self.v_in.empty()) and (self.v_out.maxsize == 0 or self.v_out.qsize() + 1 < self.v_out.maxsize):
+                car = self.v_in.get()
                 car.addTime(self.scheduler.current_time - car.time)
                 car.newTime(self.scheduler.current_time)
-                self.vOut.put(car)
-        elif direction == 'HORIZONTAL':
-            if (not self.hIn.empty()) and (self.hOut.maxsize == 0 or self.hOut.qsize() + 1 < self.hOut.maxsize):
-                car = self.hIn.get()
+                self.v_out.put(car)
+                self.scheduler.addEvent(Event('MOVE_CAR', self.scheduler.current_time + 1, event.direction, self))
+            elif self.v_out.maxsize == 0 or self.v_out.qsize() + 1 < self.v_out.maxsize:
+                self.scheduler.addEvent(Event('MOVE_CAR', self.scheduler.current_time + 2, "VERTICAL", self))
+
+        elif event.direction == 'HORIZONTAL':
+            if (self.h_traffic_light == 'GREEN' and not self.h_in.empty()) and (self.h_out.maxsize == 0 or self.h_out.qsize() + 1 < self.h_out.maxsize):
+                car = self.h_in.get()
                 car.addTime(self.scheduler.current_time - car.time)
                 car.newTime(self.scheduler.current_time)
-                self.hOut.put(car)
-        self.scheduleNextCar(direction)
-
-    def scheduleNextCar(self, direction):
-        if direction == 'VERTICAL' and self.VtrafficLight == 'GREEN':
-            if not self.vIn.empty():
-                self.scheduler.addEvent(Event('MOVE_CAR', self.scheduler.current_time + 2, direction, self))
-        if direction == 'HORIZONTAL' and self.HtrafficLight == 'GREEN':
-            if not self.hIn.empty():
-                self.scheduler.addEvent(Event('MOVE_CAR', self.scheduler.current_time + 2, direction, self))
+                self.h_out.put(car)
+                self.scheduler.addEvent(Event('MOVE_CAR', self.scheduler.current_time + 1, event.direction, self))
+            elif self.h_out.maxsize == 0 or self.h_out.qsize() + 1 < self.h_out.maxsize:
+                self.scheduler.addEvent(Event('MOVE_CAR', self.scheduler.current_time + 2, 'HORIZONTAL', self))

@@ -1,142 +1,85 @@
-import math
 from queue import Queue
-from Source import *
-from Event import Event
-import numpy as np
-from Intersection import *
+import MapManager
+
 
 class Scheduler:
-    cars = 0
-    current_time = 0
-    out = Queue()
-    eventList = []
-
-    def __init__(self):
-        # Config parameters
-        # Volume of arrivals
-        print("")
-        print("Traffic density: (1, 2 o 3):")
-        print("1. Low")
-        print("2. Medium")
-        print("3. High")
-        self.traffic_volume = int(input())
-       
-        # City map size
-        print("")
-        print("City map size:")
-        print("Rows")
-        self.rows = int(input())
-        print("Cols")
-        self.cols = int(input())
-
-        # Road length
-        print("")
-        print("Road length (number of cars):")
-        self.road_length = int(input())
-        
-        # Simulation time
-        print("Simulation time in minutes:")
-        self.simulation_time = int(input()) * 60
-
-        # Print chosen parameters
-        print("")
-        print("SELECTED PARAMETERS:")
-        print("Traffic density: " + str(self.traffic_volume))
-        print("Simulation time: " + str(self.simulation_time / 60) + " minutes")
-
-        # Create a map of intersections
-        self.createMap()
-
-        # Car generator
-        self.source = Source(self)
-
-        # Statistics
-        self.stayTime = 0
-
-        # Start simulation 
-        self.eventList.append(Event('SIMULATION_START', 0, None, None))
-
-    def createMap(self):
-        self.city_map = np.full((self.rows, self.cols), Intersection(self, self.road_length, self.road_length))
-
-        for i,row in enumerate(self.city_map):
-            for j,inter in enumerate(row):
-                # Horizontal connections
-                # Street direction: right
-                if i % 2 == 0:
-                    if j != self.cols-1:
-                        inter.connectHOut(self.city_map[i][j + 1].hIn)
-                    else:
-                        inter.connectVOut(self.out)
-
-                # Street direction: left
-                else:
-                    if j != 0:
-                        inter.connectHOut(self.city_map[i][j - 1].hIn)
-                    else:
-                        inter.connectVOut(self.out)
-
-                # Vertical connections
-                # Street direction: down
-                if j % 2 == 0:
-                    if i != self.rows-1:
-                        inter.connectVOut(self.city_map[i + 1][j].vIn)
-                    else:
-                        inter.connectVOut(self.out)
-                # Street direction: up
-                else:
-                    if i != 0:
-                        inter.connectVOut(self.city_map[i - 1][j].vIn)
-                    else:
-                        inter.connectVOut(self.out)
-
-    def run(self):
-        # Simulation time at 0
+    def __init__(self, traffic_volume: int, rows: int, cols: int, road_length: int, simulation_time: int):
+        self.traffic_volume = traffic_volume
+        self.rows = rows
+        self.cols = cols
+        self.road_length = road_length
+        self.simulation_time = simulation_time
         self.current_time = 0
-        # Simulation loop (stops when no events remain at queue or simulation time is over)
-        while self.eventList and self.current_time <= self.simulation_time:
-            event = self.eventList[0]
-            self.eventList.pop(0)
-            self.current_time = event.time
-            # Event entity processes the event
-            if event.entity is None:
-                if event.eventType == "SIMULATION_START":
-                    self.source.processEvent(event)
-            else:
-                event.entity.processEvent(event)
-                if event.eventType == 'NEW_CAR':
-
-                    self.source.processEvent(event)
-
-        self.statistics()
+        self.event_list = []
+        self.out = Queue()
+        self.city_map = None
+        self.cars_created = 0
 
     def addEvent(self, event):
-        self.eventList.append(event)
-        self.eventList.sort(key=lambda x: x.time, reverse=False)
+        self.event_list.append(event)
+        self.event_list.sort(key=lambda x: x.time, reverse=False)
 
-    def calcWaitingTime(self):
-        time = 0
-        i = 0
+    def print_statistics(self):
+        def calc_waiting_time():
+            accumulated_waiting_time = 0
+            cars_leaving_simulator = 0
 
-        while not self.out.empty():
-            time += self.out.get().waitingTime
-            i += 1
+            while not self.out.empty():
+                accumulated_waiting_time += self.out.get().waiting_time
+                cars_leaving_simulator += 1
 
-        average_waiting_time = time / i if i > 0 else 'no cars left the simulator'
+            average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
 
-        return average_waiting_time
+            return average_waiting_time
 
-
-    def statistics(self):
-        print(" ")
-        print("---- STATISTICS ----")
-        print("Cars created: " + str(self.source.createdCars))
+        print("\n---- STATISTICS ----")
+        print("Cars created: " + str(self.cars_created))
         print("Cars eliminated: " + str(self.out.qsize()))
-        print("Percentage of cars that have travessed the model: " + str(self.out.qsize()/self.source.createdCars))
-        print("Average waiting time: " + str(self.calcWaitingTime()))
+        print("Percentage of cars that have crossed the model: " + str(self.out.qsize() / self.cars_created))
+        print("Average waiting time: " + str(calc_waiting_time()))
 
+    def start_simulation(self):
+        self.city_map = MapManager.create_map(self)
+        MapManager.first_cars(self)
 
+    def get_observation(self):
+        observation = {
+            'lights_settings': [[0] * self.rows * self.cols],
+            "horizontal_num_of_cars": [[0] * self.rows * self.cols],
+            "vertical_num_of_cars": [[0] * self.rows * self.cols],
+            "horizontal_waiting_time": [[-1] * self.road_length] * self.rows * self.cols,
+            "vertical_waiting_time": [[-1] * self.road_length] * self.rows * self.cols
+        }
 
-if __name__ == '__main__':
-    scheduler = Scheduler()
-    scheduler.run()
+        for i, row in enumerate(self.city_map):
+            for j, intersection in enumerate(row):
+                flattened_index = i * self.cols + j
+                observation['lights_settings'][0][flattened_index] = 1 if intersection.h_traffic_light == "GREEN" else 0
+                observation['horizontal_num_of_cars'][0][flattened_index] = intersection.h_in.qsize()
+                observation['vertical_num_of_cars'][0][flattened_index] = intersection.v_in.qsize()
+
+                for k, car in enumerate(intersection.h_in.queue):
+                    observation['horizontal_waiting_time'][flattened_index][k] = car.waiting_time
+                for k, car in enumerate(intersection.v_in.queue):
+                    observation['vertical_waiting_time'][flattened_index][k] = car.waiting_time
+
+        return observation
+
+    def change_state(self, action):
+        for i, row in enumerate(self.city_map):
+            for j, intersection in enumerate(row):
+                if action[i * self.cols + j] >= 0.5:
+                    intersection.switchTrafficLight()
+
+    def advance_step(self, action):
+        self.change_state(action)
+
+        for _ in range(100):
+            if self.event_list and self.current_time <= self.simulation_time:
+                current_event = self.event_list.pop(0)
+                self.current_time = current_event.time
+                current_event.entity.processEvent(current_event)
+            else:
+                return True
+
+        return False
