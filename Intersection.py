@@ -55,7 +55,7 @@ class Intersection:
                 car.newTime(self.scheduler.current_time)
                 self.vOut.put(car)
         elif direction == 'HORIZONTAL':
-            if (not self.vIn.empty()) and (self.vOut.maxsize == 0 or self.hOut.qsize() + 1 < self.hOut.maxsize):
+            if (not self.hIn.empty()) and (self.hOut.maxsize == 0 or self.hOut.qsize() + 1 < self.hOut.maxsize):
                 car = self.hIn.get()
                 car.addTime(self.scheduler.current_time - car.time)
                 car.newTime(self.scheduler.current_time)

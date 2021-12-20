@@ -2,21 +2,21 @@ import gym
 from gym import spaces
 import numpy as np
 
-from TrainingScheduler import Scheduler
+from TrainingScheduler import TrainingScheduler
 
 
 class DynamicTrafficControlEnv(gym.Env):
-    def __init__(self, num_intersections, max_cars_in_road, simulation_time, scheduler: Scheduler):
+    def __init__(self, num_intersections, road_length, scheduler: TrainingScheduler):
         self.scheduler = scheduler
         super(DynamicTrafficControlEnv, self).__init__()
 
-        self.action_space = spaces.Discrete(num_intersections)
+        self.action_space = spaces.Box(np.zeros(num_intersections), np.ones(num_intersections), dtype=np.uint8)
         self.observation_space = spaces.Dict({
-            "lights_setting": spaces.Discrete(num_intersections),
-            "horizontal_num_of_cars": spaces.Box(low=0, high=max_cars_in_road, shape=(1, num_intersections), dtype=np.uint8),
-            "vertical_num_of_cars": spaces.Box(low=0, high=max_cars_in_road, shape=(1, num_intersections), dtype=np.uint8),
-            "horizontal_waiting_time": spaces.Box(low=0, high=simulation_time, shape=(num_intersections, max_cars_in_road), dtype=np.uint8),
-            "vertical_waiting_time": spaces.Box(low=0, high=simulation_time, shape=(num_intersections, max_cars_in_road), dtype=np.uint8)
+            "lights_settings": spaces.Box(low=-5, high=5, shape=(1, num_intersections), dtype=np.uint8),
+            "horizontal_num_of_cars": spaces.Box(low=0, high=road_length, shape=(1, num_intersections), dtype=np.uint8),
+            "vertical_num_of_cars": spaces.Box(low=0, high=road_length, shape=(1, num_intersections), dtype=np.uint8),
+            "horizontal_waiting_time": spaces.Box(low=0, high=65535, shape=(num_intersections, road_length), dtype=np.uint8),
+            "vertical_waiting_time": spaces.Box(low=0, high=65535, shape=(num_intersections, road_length), dtype=np.uint8)
         })
 
     def reset(self):
@@ -33,7 +33,7 @@ class DynamicTrafficControlEnv(gym.Env):
         if done:
             self.reset()
 
-        return observation, reward, done
+        return observation, reward, done, {}
 
     def render(self, mode='human', close=False):
         pass
