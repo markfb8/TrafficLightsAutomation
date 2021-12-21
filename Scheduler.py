@@ -19,25 +19,6 @@ class Scheduler:
         self.event_list.append(event)
         self.event_list.sort(key=lambda x: x.time, reverse=False)
 
-    def print_statistics(self):
-        def calc_waiting_time():
-            accumulated_waiting_time = 0
-            cars_leaving_simulator = 0
-
-            while not self.out.empty():
-                accumulated_waiting_time += self.out.get().waiting_time
-                cars_leaving_simulator += 1
-
-            average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
-
-            return average_waiting_time
-
-        print("\n---- STATISTICS ----")
-        print("Cars created: " + str(self.cars_created))
-        print("Cars eliminated: " + str(self.out.qsize()))
-        print("Percentage of cars that have crossed the model: " + str(self.out.qsize() / self.cars_created))
-        print("Average waiting time: " + str(calc_waiting_time()))
-
     def start_simulation(self):
         self.city_map = MapManager.create_map(self)
         MapManager.first_cars(self)

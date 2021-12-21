@@ -25,6 +25,25 @@ class Program:
 
         self.simulation_time = int(input('\nSimulation time in minutes: ')) * 60
 
+    def print_statistics(self):
+        def calc_waiting_time():
+            accumulated_waiting_time = 0
+            cars_leaving_simulator = 0
+
+            while not self.scheduler.out.empty():
+                accumulated_waiting_time += self.scheduler.out.get().waiting_time
+                cars_leaving_simulator += 1
+
+            average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
+
+            return average_waiting_time
+
+        print("\n---- STATISTICS ----")
+        print("Cars created: " + str(self.scheduler.cars_created))
+        print("Cars eliminated: " + str(self.scheduler.out.qsize()))
+        print("Percentage of cars that have crossed the model: " + str(self.scheduler.out.qsize() / self.scheduler.cars_created))
+        print("Average waiting time: " + str(calc_waiting_time()))
+
     def create_scheduler(self):
         self.scheduler = Scheduler(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
 
@@ -59,8 +78,6 @@ class Program:
         last_time_lights_changed = 0
         done = False
 
-        num_of_events = 0
-
         while not done:
             if (self.scheduler.current_time - last_time_lights_changed) >= time_between_changes:
                 action = [1] * self.rows * self.cols
@@ -69,10 +86,8 @@ class Program:
                 action = [0] * self.rows * self.cols
 
             done = self.scheduler.advance_step(action)
-            num_of_events = num_of_events + 1
 
-        self.scheduler.print_statistics()
-        print('num of events is ' + str(num_of_events))
+        self.print_statistics()
 
 
 if __name__ == '__main__':
