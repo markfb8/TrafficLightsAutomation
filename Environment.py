@@ -2,12 +2,12 @@ import gym
 from gym import spaces
 import numpy as np
 
-from Scheduler import Scheduler
+from Simulation import Simulation
 
 
 class DynamicTrafficControlEnv(gym.Env):
-    def __init__(self, num_intersections, road_length, scheduler: Scheduler):
-        self.scheduler = scheduler
+    def __init__(self, num_intersections, road_length, simulation: Simulation):
+        self.simulation = simulation
         super(DynamicTrafficControlEnv, self).__init__()
 
         self.action_space = spaces.Box(np.zeros(num_intersections), np.ones(num_intersections), dtype=np.uint8)
@@ -20,14 +20,14 @@ class DynamicTrafficControlEnv(gym.Env):
         })
 
     def reset(self):
-        self.scheduler.start_simulation()
-        observation = self.scheduler.get_observation()
+        self.simulation.start_simulation()
+        observation = self.simulation.get_observation()
 
         return observation
 
     def step(self, action):
-        observation = self.scheduler.get_observation()
-        done = self.scheduler.advance_step(action)
+        observation = self.simulation.get_observation()
+        done = self.simulation.advance_step(action)
         reward = 0
 
         if done:

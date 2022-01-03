@@ -2,7 +2,7 @@ from queue import Queue
 import MapManager
 
 
-class Scheduler:
+class Simulation:
     def __init__(self, traffic_volume: int, rows: int, cols: int, road_length: int, simulation_time: int):
         self.traffic_volume = traffic_volume
         self.rows = rows
@@ -40,9 +40,9 @@ class Scheduler:
                 observation['vertical_num_of_cars'][0][flattened_index] = intersection.v_in.qsize()
 
                 for k, car in enumerate(intersection.h_in.queue):
-                    observation['horizontal_waiting_time'][flattened_index][k] = car.waiting_time
+                    observation['horizontal_waiting_time'][flattened_index][k] = self.current_time - car.time
                 for k, car in enumerate(intersection.v_in.queue):
-                    observation['vertical_waiting_time'][flattened_index][k] = car.waiting_time
+                    observation['vertical_waiting_time'][flattened_index][k] = self.current_time - car.time
 
         return observation
 

@@ -2,7 +2,7 @@ from os.path import exists
 from stable_baselines3 import PPO
 
 from Environment import DynamicTrafficControlEnv
-from Scheduler import Scheduler
+from Simulation import Simulation
 
 
 class Program:
@@ -12,7 +12,7 @@ class Program:
         self.cols = None
         self.road_length = None
         self.simulation_time = None
-        self.scheduler = None
+        self.simulation = None
 
     def get_data(self):
         self.traffic_volume = int(input('\nTraffic density: (1, 2 o 3):\n1. Low\n2. Medium\n3. High\n'))
@@ -30,8 +30,8 @@ class Program:
             accumulated_waiting_time = 0
             cars_leaving_simulator = 0
 
-            while not self.scheduler.out.empty():
-                accumulated_waiting_time += self.scheduler.out.get().waiting_time
+            while not self.simulation.out.empty():
+                accumulated_waiting_time += self.simulation.out.get().waiting_time
                 cars_leaving_simulator += 1
 
             average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
@@ -39,16 +39,16 @@ class Program:
             return average_waiting_time
 
         print("\n---- STATISTICS ----")
-        print("Cars created: " + str(self.scheduler.cars_created))
-        print("Cars eliminated: " + str(self.scheduler.out.qsize()))
-        print("Percentage of cars that have crossed the model: " + str(self.scheduler.out.qsize() / self.scheduler.cars_created))
+        print("Cars created: " + str(self.simulation.cars_created))
+        print("Cars eliminated: " + str(self.simulation.out.qsize()))
+        print("Percentage of cars that have crossed the model: " + str(self.simulation.out.qsize() / self.simulation.cars_created))
         print("Average waiting time: " + str(calc_waiting_time()))
 
-    def create_scheduler(self):
-        self.scheduler = Scheduler(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
+    def create_simulation(self):
+        self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
 
     def train(self):
-        env = DynamicTrafficControlEnv(self.rows * self.cols, self.road_length, self.scheduler)
+        env = DynamicTrafficControlEnv(self.rows * self.cols, self.road_length, self.simulation)
 
         if exists('models/test.zip'):
             model = PPO.load('models/test', env=env)
@@ -61,7 +61,7 @@ class Program:
             _ = env.reset()
 
     def predict(self):
-        env = DynamicTrafficControlEnv(self.rows * self.cols, self.road_length, self.scheduler)
+        env = DynamicTrafficControlEnv(self.rows * self.cols, self.road_length, self.simulation)
         model = PPO.load('models/test', env=env)
         observation = env.reset()
 
@@ -74,18 +74,18 @@ class Program:
     def standard(self):
         time_between_changes = int(input('\nTime between changes: '))
 
-        self.scheduler.start_simulation()
+        self.simulation.start_simulation()
         last_time_lights_changed = 0
         done = False
 
         while not done:
-            if (self.scheduler.current_time - last_time_lights_changed) >= time_between_changes:
+            if (self.simulation.current_time - last_time_lights_changed) >= time_between_changes:
                 action = [1] * self.rows * self.cols
-                last_time_lights_changed = self.scheduler.current_time
+                last_time_lights_changed = self.simulation.current_time
             else:
                 action = [0] * self.rows * self.cols
 
-            done = self.scheduler.advance_step(action)
+            done = self.simulation.advance_step(action)
 
         self.print_statistics()
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     program = Program()
     program.get_data()
-    program.create_scheduler()
+    program.create_simulation()
 
     if operation == 1:
         program.train()
