@@ -4,7 +4,6 @@ from queue import Queue
 
 
 class Intersection:
-
     def __init__(self, simulation, max_size_h, max_size_v):
         self.simulation = simulation
         self.green_light = 'VERTICAL'
@@ -24,6 +23,7 @@ class Intersection:
 
         queue, _ = self.get_attributes_given_direction(self.green_light)
         if not queue.empty():
+            self.simulation.event_list = [event for event in self.simulation.event_list if event.intersection != self or event.event_type == 'NEW_CAR']
             self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + Simulation.CROSSING_AFTER_GREEN, self.green_light, self))
 
     def move_car(self, event):
