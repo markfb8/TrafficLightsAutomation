@@ -26,23 +26,23 @@ class Program:
         self.simulation_time = int(input('\nSimulation time in minutes: ')) * 60
 
     def print_statistics(self):
-        def calc_waiting_time():
-            accumulated_waiting_time = 0
-            cars_leaving_simulator = 0
+        accumulated_waiting_time = 0
+        cars_leaving_simulator = 0
 
-            while not self.simulation.out.empty():
-                accumulated_waiting_time += self.simulation.out.get().waiting_time
-                cars_leaving_simulator += 1
+        while not self.simulation.outer_intersection.v_queue.empty():
+            accumulated_waiting_time += self.simulation.outer_intersection.v_queue.get().waiting_time
+            cars_leaving_simulator += 1
+        while not self.simulation.outer_intersection.h_queue.empty():
+            accumulated_waiting_time += self.simulation.outer_intersection.h_queue.get().waiting_time
+            cars_leaving_simulator += 1
 
-            average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
-
-            return average_waiting_time
+        average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
 
         print("\n---- STATISTICS ----")
         print("Cars created: " + str(self.simulation.cars_created))
-        print("Cars eliminated: " + str(self.simulation.out.qsize()))
-        print("Percentage of cars that have crossed the model: " + str(self.simulation.out.qsize() / self.simulation.cars_created))
-        print("Average waiting time: " + str(calc_waiting_time()))
+        print("Cars eliminated: " + str(cars_leaving_simulator))
+        print("Percentage of cars that have crossed the model: " + str(cars_leaving_simulator / self.simulation.cars_created))
+        print("Average waiting time: " + str(average_waiting_time))
 
     def create_simulation(self):
         self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)

@@ -1,5 +1,6 @@
 import numpy as np
 
+from Car import Car
 from Event import Event
 from random import randint
 
@@ -12,13 +13,13 @@ def create_map(simulation):
     for i, row in enumerate(city_map):
         for j, intersection in enumerate(row):
             if i % 2 == 0:  # If in a even row (right connection)
-                intersection.connectHOut(city_map[i][j + 1].h_in) if j != simulation.cols - 1 else intersection.connectHOut(simulation.out)
+                intersection.h_out_intersection = city_map[i][j + 1] if j != simulation.cols - 1 else simulation.outer_intersection
             else:  # If in a odd row (left connection)
-                intersection.connectHOut(city_map[i][j - 1].h_in) if j != 0 else intersection.connectHOut(simulation.out)
+                intersection.h_out_intersection = city_map[i][j - 1] if j != 0 else simulation.outer_intersection
             if j % 2 == 0:  # If in a even column (down connection)
-                intersection.connectVOut(city_map[i + 1][j].v_in) if i != simulation.rows - 1 else intersection.connectVOut(simulation.out)
+                intersection.v_out_intersection = city_map[i + 1][j] if i != simulation.rows - 1 else simulation.outer_intersection
             else:  # If in a odd column (up connection)
-                intersection.connectVOut(city_map[i - 1][j].v_in) if i != 0 else intersection.connectVOut(simulation.out)
+                intersection.v_out_intersection = city_map[i - 1][j] if i != 0 else simulation.outer_intersection
 
     return city_map
 
@@ -27,15 +28,22 @@ def first_cars(simulation):
     for i, row in enumerate(simulation.city_map):
         for j, intersection in enumerate(row):
             if (i % 2 == 0 and j == 0) or (i % 2 != 0 and j == simulation.cols - 1):  # If at the start of an even row or at the end of an odd row, create car
-                simulation.addEvent(Event('NEW_CAR', simulation.current_time + calculate_added_time(simulation), 'HORIZONTAL', intersection))
+                simulation.add_event(Event('NEW_CAR', 0, 'HORIZONTAL', intersection))
             if (j % 2 == 0 and i == 0) or (j % 2 != 0 and i == simulation.rows - 1):  # If at the start of an even column or at the end of an odd column, create car
-                simulation.addEvent(Event('NEW_CAR', simulation.current_time + calculate_added_time(simulation), 'VERTICAL', intersection))
+                simulation.add_event(Event('NEW_CAR', 0, 'VERTICAL', intersection))
 
 
-def schedule_next_arrival(simulation, event):
-    simulation.cars_created = simulation.cars_created + 1
+def new_car(simulation, event):
+    queue, _ = event.intersection.get_attributes_given_direction(event.direction)
 
-    simulation.addEvent(Event('NEW_CAR', event.time + calculate_added_time(simulation), event.direction, event.entity))
+    if queue.qsize() < queue.maxsize:
+        simulation.cars_created = simulation.cars_created + 1
+        queue.put(Car(event.time))
+        simulation.add_event(Event('NEW_CAR', event.time + calculate_added_time(simulation), event.direction, event.intersection))
+        if queue.empty():
+            simulation.add_event(Event('MOVE_CAR', simulation.current_time + 10, event.direction, event.intersection))
+    else:
+        simulation.add_event(Event('NEW_CAR', event.time + 10, event.direction, event.intersection))
 
 
 def calculate_added_time(simulation):

@@ -1,68 +1,49 @@
-from Car import Car
 from Event import Event
 from queue import Queue
-import MapManager
 
 
 class Intersection:
 
     def __init__(self, simulation, max_size_h, max_size_v):
-        # init
         self.simulation = simulation
-        self.v_traffic_light = "GREEN"
-        self.h_traffic_light = "RED"
-        # roads
-        self.max_size_h = max_size_h
-        self.max_size_v = max_size_v
-        self.h_in = Queue(max_size_h)
-        self.v_in = Queue(max_size_v)
-        self.v_out = None
-        self.h_out = None
+        self.green_light = 'VERTICAL'
+        self.v_queue = Queue(max_size_v)
+        self.h_queue = Queue(max_size_h)
+        self.v_out_intersection = None
+        self.h_out_intersection = None
 
-    def connectVOut(self, v_out):
-        self.v_out = v_out
-
-    def connectHOut(self, h_out):
-        self.h_out = h_out
-
-    def processEvent(self, event):
-        if event.event_type == 'NEW_CAR':
-            MapManager.schedule_next_arrival(self.simulation, event)
-            if event.direction == 'VERTICAL':
-                if self.v_in.qsize() + 1 < self.max_size_v:
-                    self.v_in.put(Car(event.time))
-            elif event.direction == 'HORIZONTAL':
-                if self.h_in.qsize() + 1 < self.max_size_h:
-                    self.h_in.put(Car(event.time))
-        elif event.event_type == 'MOVE_CAR':
-            self.moveCar(event)
-
-    def switchTrafficLight(self):
-        self.v_traffic_light = 'GREEN' if self.v_traffic_light == 'RED' else 'RED'
-        self.h_traffic_light = 'GREEN' if self.h_traffic_light == 'RED' else 'RED'
-
-        if self.v_traffic_light == 'GREEN':
-            self.simulation.addEvent(Event('MOVE_CAR', self.simulation.current_time + 5, "VERTICAL", self))
+    def get_attributes_given_direction(self, direction):
+        if direction == 'VERTICAL':
+            return self.v_queue, self.v_out_intersection
         else:
-            self.simulation.addEvent(Event('MOVE_CAR', self.simulation.current_time + 5, "HORIZONTAL", self))
+            return self.h_queue, self.h_out_intersection
 
-    def moveCar(self, event):
-        if event.direction == 'VERTICAL':
-            if (self.v_traffic_light == 'GREEN' and not self.v_in.empty()) and (self.v_out.maxsize == 0 or self.v_out.qsize() + 1 < self.v_out.maxsize):
-                car = self.v_in.get()
-                car.addTime(self.simulation.current_time - car.time)
-                car.newTime(self.simulation.current_time)
-                self.v_out.put(car)
-                self.simulation.addEvent(Event('MOVE_CAR', self.simulation.current_time + 1, event.direction, self))
-            elif self.v_out.maxsize == 0 or self.v_out.qsize() + 1 < self.v_out.maxsize:
-                self.simulation.addEvent(Event('MOVE_CAR', self.simulation.current_time + 2, "VERTICAL", self))
+    def switch_traffic_light(self):
+        self.green_light = 'VERTICAL' if self.green_light == 'HORIZONTAL' else 'HORIZONTAL'
 
-        elif event.direction == 'HORIZONTAL':
-            if (self.h_traffic_light == 'GREEN' and not self.h_in.empty()) and (self.h_out.maxsize == 0 or self.h_out.qsize() + 1 < self.h_out.maxsize):
-                car = self.h_in.get()
-                car.addTime(self.simulation.current_time - car.time)
-                car.newTime(self.simulation.current_time)
-                self.h_out.put(car)
-                self.simulation.addEvent(Event('MOVE_CAR', self.simulation.current_time + 1, event.direction, self))
-            elif self.h_out.maxsize == 0 or self.h_out.qsize() + 1 < self.h_out.maxsize:
-                self.simulation.addEvent(Event('MOVE_CAR', self.simulation.current_time + 2, 'HORIZONTAL', self))
+        queue, _ = self.get_attributes_given_direction(self.green_light)
+        if not queue.empty():
+            self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + 5, self.green_light, self))
+
+    def move_car(self, event):
+        this_queue, out_intersection = self.get_attributes_given_direction(event.direction)
+        out_queue, out_out_intersection = out_intersection.get_attributes_given_direction(event.direction)
+
+        # If (green light) and (out queue has space for the car)
+        if self.green_light == event.direction and out_queue.qsize() < out_queue.maxsize:
+            # If not event created for the out intersection
+            if out_queue.empty() and out_out_intersection is not None:
+                self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + 10, event.direction, out_intersection))
+
+            car = this_queue.get()
+            car.add_time(self.simulation.current_time - car.time)
+            car.new_time(self.simulation.current_time)
+            out_queue.put(car)
+
+            # If there are more cars waiting
+            if not this_queue.empty():
+                self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + 1, event.direction, self))
+
+        # If (green light) and (out queue does not have space for the car)
+        elif self.green_light == event.direction and out_queue.qsize() >= out_queue.maxsize:
+            self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + 3, event.direction, self))
