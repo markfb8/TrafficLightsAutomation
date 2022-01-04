@@ -5,6 +5,7 @@ from Event import Event
 from random import randint
 
 from Intersection import Intersection
+import Simulation
 
 
 def create_map(simulation):
@@ -41,7 +42,7 @@ def new_car(simulation, event):
         queue.put(Car(event.time))
         simulation.add_event(Event('NEW_CAR', event.time + calculate_added_time(simulation), event.direction, event.intersection))
         if queue.empty():
-            simulation.add_event(Event('MOVE_CAR', simulation.current_time + 10, event.direction, event.intersection))
+            simulation.add_event(Event('MOVE_CAR', simulation.current_time + Simulation.CROSSING_STREET_AND_INTERSECTION, event.direction, event.intersection))
     else:
         simulation.add_event(Event('NEW_CAR', event.time + 10, event.direction, event.intersection))
 

@@ -26,8 +26,8 @@ class DynamicTrafficControlEnv(gym.Env):
         return observation
 
     def step(self, action):
-        observation = self.simulation.get_observation()
         done = self.simulation.advance_step(action)
+        observation = self.simulation.get_observation()
         reward = 0
 
         if done:

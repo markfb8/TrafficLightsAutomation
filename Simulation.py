@@ -1,6 +1,11 @@
 import MapManager
 from Intersection import Intersection
 
+CROSSING_STREET_AND_INTERSECTION = 10
+CROSSING_AFTER_GREEN = 5
+CROSSING_AFTER_BUSY_ROAD = 3
+CROSSING_BEHIND_CAR = 1
+
 
 class Simulation:
     def __init__(self, traffic_volume: int, rows: int, cols: int, road_length: int, simulation_time: int):

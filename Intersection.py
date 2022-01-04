@@ -1,3 +1,4 @@
+import Simulation
 from Event import Event
 from queue import Queue
 
@@ -23,7 +24,7 @@ class Intersection:
 
         queue, _ = self.get_attributes_given_direction(self.green_light)
         if not queue.empty():
-            self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + 5, self.green_light, self))
+            self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + Simulation.CROSSING_AFTER_GREEN, self.green_light, self))
 
     def move_car(self, event):
         this_queue, out_intersection = self.get_attributes_given_direction(event.direction)
@@ -33,7 +34,7 @@ class Intersection:
         if self.green_light == event.direction and out_queue.qsize() < out_queue.maxsize:
             # If not event created for the out intersection
             if out_queue.empty() and out_out_intersection is not None:
-                self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + 10, event.direction, out_intersection))
+                self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + Simulation.CROSSING_STREET_AND_INTERSECTION, event.direction, out_intersection))
 
             car = this_queue.get()
             car.add_time(self.simulation.current_time - car.time)
@@ -42,8 +43,8 @@ class Intersection:
 
             # If there are more cars waiting
             if not this_queue.empty():
-                self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + 1, event.direction, self))
+                self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + Simulation.CROSSING_BEHIND_CAR, event.direction, self))
 
         # If (green light) and (out queue does not have space for the car)
         elif self.green_light == event.direction and out_queue.qsize() >= out_queue.maxsize:
-            self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + 3, event.direction, self))
+            self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + Simulation.CROSSING_AFTER_BUSY_ROAD, event.direction, self))
