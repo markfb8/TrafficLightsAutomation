@@ -61,17 +61,16 @@ class Simulation:
     def advance_step(self, action):
         self.change_state(action)
 
-        for _ in range(1):
-            if self.event_list and self.current_time <= self.simulation_time:
-                current_event = self.event_list.pop(0)
-                self.current_time = current_event.time
-                if current_event.event_type == 'NEW_CAR':
-                    MapManager.new_car(self, current_event)
-                else:
-                    current_event.intersection.move_car(current_event)
-            elif not self.event_list:
-                self.current_time = self.current_time + 1
-            if self.current_time > self.simulation_time:
-                return True
+        if self.event_list and self.current_time <= self.simulation_time:
+            current_event = self.event_list.pop(0)
+            self.current_time = current_event.time
+            if current_event.event_type == 'NEW_CAR':
+                MapManager.new_car(self, current_event)
+            else:
+                current_event.intersection.move_car(current_event)
+        elif not self.event_list:
+            self.current_time = self.current_time + 1
+        if self.current_time > self.simulation_time:
+            return True
 
         return False

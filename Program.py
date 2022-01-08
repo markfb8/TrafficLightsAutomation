@@ -1,3 +1,4 @@
+import sys
 from os.path import exists
 from stable_baselines3 import PPO
 
@@ -12,10 +13,14 @@ class Program:
         self.rows = int(input('\nCity map size (Rows): '))
         self.cols = int(input('\nCity map size (Columns): '))
         self.road_length = int(input('\nRoad length (number of cars): '))
-        self.simulation_time = int(input('\nSimulation time in minutes: ')) * 60
-        self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
+        if self.operation != 1:
+            self.simulation_time = int(input('\nSimulation duration in minutes: ')) * 60
+        else:
+            self.simulation_time = sys.maxsize
         if self.operation == 3:
             self.time_between_changes = int(input('\nTime between changes: '))
+
+        self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
 
     def print_statistics(self):
         accumulated_waiting_time = 0
@@ -37,7 +42,7 @@ class Program:
         print("Average waiting time: " + str(average_waiting_time))
 
     def train(self):
-        env = DynamicTrafficControlEnv(self.rows * self.cols, self.road_length, self.simulation)
+        env = DynamicTrafficControlEnv(self.simulation)
 
         if exists('models/test.zip'):
             model = PPO.load('models/test', env=env)
@@ -50,7 +55,7 @@ class Program:
             _ = env.reset()
 
     def predict(self):
-        env = DynamicTrafficControlEnv(self.rows * self.cols, self.road_length, self.simulation)
+        env = DynamicTrafficControlEnv(self.simulation)
         model = PPO.load('models/test', env=env)
         observation = env.reset()
 
