@@ -33,6 +33,17 @@ class DynamicTrafficControlEnv(gym.Env):
         current_observation = self.simulation.get_observation()
         learning_data.previous_observation = current_observation
 
+        reward = self.reward_function_1(previous_observation, current_observation)
+
+        if done:
+            self.reset()
+
+        return current_observation, reward, done, {}
+
+    def render(self, mode='human', close=False):
+        pass
+
+    def reward_function_1(self, previous_observation, current_observation):
         previous_horizontal_waiting_time = 0
         previous_vertical_waiting_time = 0
         current_horizontal_waiting_time = 0
@@ -51,12 +62,4 @@ class DynamicTrafficControlEnv(gym.Env):
         previous_waiting_time = previous_horizontal_waiting_time + previous_vertical_waiting_time
         current_waiting_time = current_horizontal_waiting_time + current_vertical_waiting_time
 
-        reward = previous_waiting_time - current_waiting_time
-
-        if done:
-            self.reset()
-
-        return current_observation, reward, done, {}
-
-    def render(self, mode='human', close=False):
-        pass
+        return previous_waiting_time - current_waiting_time
