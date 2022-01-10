@@ -34,6 +34,7 @@ class DynamicTrafficControlEnv(gym.Env):
         learning_data.previous_observation = current_observation
 
         reward = self.reward_function_1(previous_observation, current_observation)
+        # reward = self.reward_function_2(previous_observation, action)
 
         if done:
             self.reset()
@@ -63,3 +64,19 @@ class DynamicTrafficControlEnv(gym.Env):
         current_waiting_time = current_horizontal_waiting_time + current_vertical_waiting_time
 
         return previous_waiting_time - current_waiting_time
+
+    def reward_function_2(self, previous_observation, action):
+        reward = 0
+
+        num_of_intersections = self.simulation.rows * self.simulation.cols
+        for i in range(num_of_intersections):
+            # If the vertical lights turn green
+            if previous_observation['lights_settings'] == 1 and action[i] == 1:
+                reward += previous_observation['vertical_num_of_cars'] - previous_observation['horizontal_num_of_cars']
+            # If the horizontal lights turn green
+            elif previous_observation['lights_settings'] == 0 and action[i] == 1:
+                reward += previous_observation['horizontal_num_of_cars'] - previous_observation['vertical_num_of_cars']
+
+        return reward
+
+

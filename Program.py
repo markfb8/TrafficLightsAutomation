@@ -13,11 +13,15 @@ class Program:
         self.rows = int(input('\nCity map size (Rows): '))
         self.cols = int(input('\nCity map size (Columns): '))
         self.road_length = int(input('\nRoad length (number of cars): '))
-        if self.operation != 1:
-            self.simulation_time = int(input('\nSimulation duration in minutes: ')) * 60
-        else:
+
+        if self.operation == 1:
             self.simulation_time = sys.maxsize
-        if self.operation == 3:
+            self.model_name = input('\nModel name: ')
+        elif self.operation == 2:
+            self.simulation_time = int(input('\nSimulation duration in minutes: ')) * 60
+            self.model_name = input('\nModel name: ')
+        elif self.operation == 3:
+            self.simulation_time = int(input('\nSimulation duration in minutes: ')) * 60
             self.time_between_changes = int(input('\nTime between changes: '))
 
         self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
@@ -44,19 +48,19 @@ class Program:
     def train(self):
         env = DynamicTrafficControlEnv(self.simulation)
 
-        if exists('models/test.zip'):
-            model = PPO.load('models/test', env=env)
+        if exists('models/' + self.model_name + '.zip'):
+            model = PPO.load('models/' + self.model_name, env=env)
         else:
             model = PPO(policy='MultiInputPolicy', env=env, verbose=1)
 
         while True:
-            model.learn(total_timesteps=2024, n_eval_episodes=1)
-            model.save('models/test')
+            model.learn(total_timesteps=40960, n_eval_episodes=10)
+            model.save('models/' + self.model_name)
             _ = env.reset()
 
     def predict(self):
         env = DynamicTrafficControlEnv(self.simulation)
-        model = PPO.load('models/test', env=env)
+        model = PPO.load('models/' + self.model_name, env=env)
         observation = env.reset()
 
         done = False

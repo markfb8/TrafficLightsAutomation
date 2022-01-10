@@ -41,7 +41,7 @@ class Simulation:
         for i, row in enumerate(self.city_map):
             for j, intersection in enumerate(row):
                 flattened_index = i * self.cols + j
-                observation['lights_settings'][0][flattened_index] = 1 if intersection.green_light == 'HORIZONTAL' else 0
+                observation['lights_settings'][0][flattened_index] = 0 if intersection.green_light == 'VERTICAL' else 1
                 observation['horizontal_num_of_cars'][0][flattened_index] = intersection.h_queue.qsize()
                 observation['vertical_num_of_cars'][0][flattened_index] = intersection.v_queue.qsize()
 
