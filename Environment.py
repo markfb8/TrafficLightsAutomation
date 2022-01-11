@@ -18,7 +18,7 @@ class DynamicTrafficControlEnv(gym.Env):
             "vertical_num_of_cars": spaces.Box(low=0, high=simulation.road_length, shape=(1, simulation.rows * simulation.cols), dtype=np.uint8),
             "horizontal_waiting_time": spaces.Box(low=-1, high=65535, shape=(simulation.rows * simulation.cols, simulation.road_length), dtype=np.int32),
             "vertical_waiting_time": spaces.Box(low=-1, high=65535, shape=(simulation.rows * simulation.cols, simulation.road_length), dtype=np.int32)
-            #"average_waiting_time": spaces.Discrete(simulation.simulation_time)
+            #"average_waiting_time": spaces.Box(low=-1, high=simulation.simulation_time, shape=(1, 1), dtype=np.int32)
         })
 
     def reset(self):
@@ -30,12 +30,12 @@ class DynamicTrafficControlEnv(gym.Env):
 
     def step(self, action):
         previous_observation = learning_data.previous_observation
-        done = self.simulation.advance_step(action, 30)
+        done = self.simulation.advance_step(action, 1)
         current_observation = self.simulation.get_observation()
         learning_data.previous_observation = current_observation
 
-        reward = self.reward_function_1(previous_observation, current_observation)
-        # reward = self.reward_function_2(previous_observation, action)
+        # reward = self.reward_function_1(previous_observation, current_observation)
+        reward = self.reward_function_2(previous_observation, action)
         # reward = self.reward_function_3(previous_observation, action)
         # reward = self.reward_function_4(previous_observation, action)
         # reward = self.reward_function_5(previous_observation, action, current_observation)
@@ -53,16 +53,16 @@ class DynamicTrafficControlEnv(gym.Env):
         previous_vertical_waiting_time = 0
         current_horizontal_waiting_time = 0
         current_vertical_waiting_time = 0
-        for i in range(self.simulation.rows * self.simulation.cols):
-            for j in range(self.simulation.road_length):
-                if previous_observation['horizontal_waiting_time'][i][j] != -1:
-                    previous_horizontal_waiting_time += previous_observation['horizontal_waiting_time'][i][j]
-                if previous_observation['vertical_waiting_time'][i][j] != -1:
-                    previous_vertical_waiting_time += previous_observation['vertical_waiting_time'][i][j]
-                if current_observation['horizontal_waiting_time'][i][j] != -1:
-                    current_horizontal_waiting_time += current_observation['horizontal_waiting_time'][i][j]
-                if current_observation['vertical_waiting_time'][i][j] != -1:
-                    current_vertical_waiting_time += current_observation['vertical_waiting_time'][i][j]
+        for intersection in range(self.simulation.rows * self.simulation.cols):
+            for car in range(self.simulation.road_length):
+                if previous_observation['horizontal_waiting_time'][intersection][car] != -1:
+                    previous_horizontal_waiting_time += previous_observation['horizontal_waiting_time'][intersection][car]
+                if previous_observation['vertical_waiting_time'][intersection][car] != -1:
+                    previous_vertical_waiting_time += previous_observation['vertical_waiting_time'][intersection][car]
+                if current_observation['horizontal_waiting_time'][intersection][car] != -1:
+                    current_horizontal_waiting_time += current_observation['horizontal_waiting_time'][intersection][car]
+                if current_observation['vertical_waiting_time'][intersection][car] != -1:
+                    current_vertical_waiting_time += current_observation['vertical_waiting_time'][intersection][car]
 
         previous_waiting_time = previous_horizontal_waiting_time + previous_vertical_waiting_time
         current_waiting_time = current_horizontal_waiting_time + current_vertical_waiting_time
@@ -73,13 +73,13 @@ class DynamicTrafficControlEnv(gym.Env):
         reward = 0
 
         num_of_intersections = self.simulation.rows * self.simulation.cols
-        for i in range(num_of_intersections):
+        for intersection in range(num_of_intersections):
             # If the vertical lights turn green
-            if previous_observation['lights_settings'] == 1 and action[i] == 1:
-                reward = reward + previous_observation['vertical_num_of_cars'] - previous_observation['horizontal_num_of_cars']
+            if previous_observation['lights_settings'] == 1 and action[intersection] == 1:
+                reward = reward + previous_observation['vertical_num_of_cars'][intersection] - previous_observation['horizontal_num_of_cars'][intersection]
             # If the horizontal lights turn green
-            elif previous_observation['lights_settings'] == 0 and action[i] == 1:
-                reward = reward + previous_observation['horizontal_num_of_cars'] - previous_observation['vertical_num_of_cars']
+            elif previous_observation['lights_settings'] == 0 and action[intersection] == 1:
+                reward = reward + previous_observation['horizontal_num_of_cars'][intersection] - previous_observation['vertical_num_of_cars'][intersection]
 
         return reward
 
@@ -128,5 +128,5 @@ class DynamicTrafficControlEnv(gym.Env):
         return reward
 
     def reward_function_5(self, previous_observation, action, current_observation):
-        return previous_observation['average_waiting_time'] - current_observation['average_waiting_time']
+        return previous_observation['average_waiting_time'][0] - current_observation['average_waiting_time'][0]
 

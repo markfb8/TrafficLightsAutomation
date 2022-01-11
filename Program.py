@@ -44,7 +44,7 @@ class Program:
             model = PPO(policy='MultiInputPolicy', env=env, verbose=1)
 
         while True:
-            model.learn(total_timesteps=4096, n_eval_episodes=1)
+            model.learn(total_timesteps=10240, n_eval_episodes=5)
             model.save('models/' + self.model_name)
             _ = env.reset()
 
