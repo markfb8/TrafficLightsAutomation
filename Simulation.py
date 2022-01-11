@@ -84,10 +84,12 @@ class Simulation:
                 if action[i * self.cols + j] >= 0.5:
                     intersection.switch_traffic_light()
 
-    def advance_step(self, action, num_of_events):
+    def advance_step(self, action):
         self.change_state(action)
 
-        for _ in range(num_of_events):
+        instant_to_process = self.current_time
+
+        while instant_to_process == self.event_list[0].time:
             if self.event_list and self.current_time <= self.simulation_time:
                 current_event = self.event_list.pop(0)
                 self.current_time = current_event.time

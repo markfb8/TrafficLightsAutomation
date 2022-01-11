@@ -30,12 +30,12 @@ class DynamicTrafficControlEnv(gym.Env):
 
     def step(self, action):
         previous_observation = learning_data.previous_observation
-        done = self.simulation.advance_step(action, 1)
+        done = self.simulation.advance_step(action)
         current_observation = self.simulation.get_observation()
         learning_data.previous_observation = current_observation
 
-        # reward = self.reward_function_1(previous_observation, current_observation)
-        reward = self.reward_function_2(previous_observation, action)
+        reward = self.reward_function_1(previous_observation, current_observation)
+        # reward = self.reward_function_2(previous_observation, action)
         # reward = self.reward_function_3(previous_observation, action)
         # reward = self.reward_function_4(previous_observation, action)
         # reward = self.reward_function_5(previous_observation, action, current_observation)
