@@ -29,6 +29,29 @@ class Simulation:
         self.city_map = MapManager.create_map(self)
         MapManager.first_cars(self)
 
+    def get_average_waiting_time(self):
+        accumulated_waiting_time = 0
+        cars_leaving_simulator = 0
+
+        # Virtual outer intersection
+        while not self.outer_intersection.v_queue.empty():
+            accumulated_waiting_time += self.outer_intersection.v_queue.get().waiting_time
+        while not self.outer_intersection.h_queue.empty():
+            accumulated_waiting_time += self.outer_intersection.h_queue.get().waiting_time
+
+        # Map intersections
+        for i, row in enumerate(self.city_map):
+            for j, intersection in enumerate(row):
+                while not intersection.v_queue.empty():
+                    accumulated_waiting_time += intersection.v_queue.get().waiting_time
+                while not intersection.h_queue.empty():
+                    accumulated_waiting_time += intersection.h_queue.get().waiting_time
+
+        average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
+        cars_leaving_simulator = self.outer_intersection.v_queue.qsize() + self.outer_intersection.h_queue.qsize()
+
+        return average_waiting_time, cars_leaving_simulator
+
     def get_observation(self):
         observation = {
             'lights_settings': [[0] * self.rows * self.cols],
@@ -36,6 +59,7 @@ class Simulation:
             "vertical_num_of_cars": [[0] * self.rows * self.cols],
             "horizontal_waiting_time": [[-1] * self.road_length] * self.rows * self.cols,
             "vertical_waiting_time": [[-1] * self.road_length] * self.rows * self.cols
+            #"average_waiting_time": self.get_average_waiting_time()[0]
         }
 
         for i, row in enumerate(self.city_map):
@@ -58,19 +82,20 @@ class Simulation:
                 if action[i * self.cols + j] >= 0.5:
                     intersection.switch_traffic_light()
 
-    def advance_step(self, action):
+    def advance_step(self, action, num_of_events):
         self.change_state(action)
 
-        if self.event_list and self.current_time <= self.simulation_time:
-            current_event = self.event_list.pop(0)
-            self.current_time = current_event.time
-            if current_event.event_type == 'NEW_CAR':
-                MapManager.new_car(self, current_event)
-            else:
-                current_event.intersection.move_car(current_event)
-        elif not self.event_list:
-            self.current_time = self.current_time + 1
-        if self.current_time > self.simulation_time:
-            return True
+        for _ in range(num_of_events):
+            if self.event_list and self.current_time <= self.simulation_time:
+                current_event = self.event_list.pop(0)
+                self.current_time = current_event.time
+                if current_event.event_type == 'NEW_CAR':
+                    MapManager.new_car(self, current_event)
+                else:
+                    current_event.intersection.move_car(current_event)
+            elif not self.event_list:
+                self.current_time = self.current_time + 1
+            if self.current_time > self.simulation_time:
+                return True
 
         return False

@@ -18,6 +18,7 @@ class DynamicTrafficControlEnv(gym.Env):
             "vertical_num_of_cars": spaces.Box(low=0, high=simulation.road_length, shape=(1, simulation.rows * simulation.cols), dtype=np.uint8),
             "horizontal_waiting_time": spaces.Box(low=-1, high=65535, shape=(simulation.rows * simulation.cols, simulation.road_length), dtype=np.int32),
             "vertical_waiting_time": spaces.Box(low=-1, high=65535, shape=(simulation.rows * simulation.cols, simulation.road_length), dtype=np.int32)
+            #"average_waiting_time": spaces.Discrete(simulation.simulation_time)
         })
 
     def reset(self):
@@ -29,12 +30,15 @@ class DynamicTrafficControlEnv(gym.Env):
 
     def step(self, action):
         previous_observation = learning_data.previous_observation
-        done = self.simulation.advance_step(action)
+        done = self.simulation.advance_step(action, 30)
         current_observation = self.simulation.get_observation()
         learning_data.previous_observation = current_observation
 
         reward = self.reward_function_1(previous_observation, current_observation)
         # reward = self.reward_function_2(previous_observation, action)
+        # reward = self.reward_function_3(previous_observation, action)
+        # reward = self.reward_function_4(previous_observation, action)
+        # reward = self.reward_function_5(previous_observation, action, current_observation)
 
         if done:
             self.reset()
@@ -72,11 +76,57 @@ class DynamicTrafficControlEnv(gym.Env):
         for i in range(num_of_intersections):
             # If the vertical lights turn green
             if previous_observation['lights_settings'] == 1 and action[i] == 1:
-                reward += previous_observation['vertical_num_of_cars'] - previous_observation['horizontal_num_of_cars']
+                reward = reward + previous_observation['vertical_num_of_cars'] - previous_observation['horizontal_num_of_cars']
             # If the horizontal lights turn green
             elif previous_observation['lights_settings'] == 0 and action[i] == 1:
-                reward += previous_observation['horizontal_num_of_cars'] - previous_observation['vertical_num_of_cars']
+                reward = reward + previous_observation['horizontal_num_of_cars'] - previous_observation['vertical_num_of_cars']
 
         return reward
 
+    def reward_function_3(self, previous_observation, action):
+        reward = 0
+
+        num_of_intersections = self.simulation.rows * self.simulation.cols
+        for intersection in range(num_of_intersections):
+            # If the vertical lights turn green
+            if previous_observation['lights_settings'] == 1 and action[intersection] == 1:
+                for car in range(self.simulation.road_length):
+                    if previous_observation['vertical_waiting_time'][intersection][car] != -1:
+                        reward += previous_observation['vertical_waiting_time'][intersection][car]
+                    if previous_observation['horizontal_waiting_time'][intersection][car] != -1:
+                        reward -= previous_observation['horizontal_waiting_time'][intersection][car]
+
+            # If the horizontal lights turn green
+            if previous_observation['lights_settings'] == 0 and action[intersection] == 1:
+                for car in range(self.simulation.road_length):
+                    if previous_observation['horizontal_waiting_time'][intersection][car] != -1:
+                        reward += previous_observation['horizontal_waiting_time'][intersection][car]
+                    if previous_observation['vertical_waiting_time'][intersection][car] != -1:
+                        reward -= previous_observation['vertical_waiting_time'][intersection][car]
+
+        return reward
+
+    def reward_function_4(self, previous_observation, action):
+        reward = 0
+
+        num_of_intersections = self.simulation.rows * self.simulation.cols
+        for intersection in range(num_of_intersections):
+            # If the vertical lights turn green
+            if previous_observation['lights_settings'] == 1 and action[intersection] == 1:
+                if previous_observation['vertical_waiting_time'][intersection][0] != -1:
+                    reward += previous_observation['vertical_waiting_time'][intersection][0]
+                if previous_observation['horizontal_waiting_time'][intersection][0] != -1:
+                    reward -= previous_observation['horizontal_waiting_time'][intersection][0]
+
+            # If the horizontal lights turn green
+            if previous_observation['lights_settings'] == 0 and action[intersection] == 1:
+                if previous_observation['horizontal_waiting_time'][intersection][0] != -1:
+                    reward += previous_observation['horizontal_waiting_time'][intersection][0]
+                if previous_observation['vertical_waiting_time'][intersection][0] != -1:
+                    reward -= previous_observation['vertical_waiting_time'][intersection][0]
+
+        return reward
+
+    def reward_function_5(self, previous_observation, action, current_observation):
+        return previous_observation['average_waiting_time'] - current_observation['average_waiting_time']
 

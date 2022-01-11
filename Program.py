@@ -27,26 +27,7 @@ class Program:
         self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
 
     def print_statistics(self):
-        accumulated_waiting_time = 0
-        cars_leaving_simulator = 0
-
-        # Virtual outer intersection
-        while not self.simulation.outer_intersection.v_queue.empty():
-            accumulated_waiting_time += self.simulation.outer_intersection.v_queue.get().waiting_time
-            cars_leaving_simulator += 1
-        while not self.simulation.outer_intersection.h_queue.empty():
-            accumulated_waiting_time += self.simulation.outer_intersection.h_queue.get().waiting_time
-            cars_leaving_simulator += 1
-
-        # Map intersections
-        for i, row in enumerate(self.simulation.city_map):
-            for j, intersection in enumerate(row):
-                while not intersection.v_queue.empty():
-                    accumulated_waiting_time += intersection.v_queue.get().waiting_time
-                while not intersection.h_queue.empty():
-                    accumulated_waiting_time += intersection.h_queue.get().waiting_time
-
-        average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
+        average_waiting_time, cars_leaving_simulator = self.simulation.get_average_waiting_time()
 
         print("\n---- STATISTICS ----")
         print("Cars created: " + str(self.simulation.cars_created))
@@ -63,7 +44,7 @@ class Program:
             model = PPO(policy='MultiInputPolicy', env=env, verbose=1)
 
         while True:
-            model.learn(total_timesteps=40960, n_eval_episodes=10)
+            model.learn(total_timesteps=4096, n_eval_episodes=1)
             model.save('models/' + self.model_name)
             _ = env.reset()
 
@@ -75,7 +56,7 @@ class Program:
         done = False
         while not done:
             action = model.predict(observation)
-            observation, rewards, done, info = env.step(action[0])
+            observation, _, done, _ = env.step(action[0])
 
     def standard(self):
         self.simulation.start_simulation()
@@ -85,9 +66,9 @@ class Program:
         while not done:
             if (self.simulation.current_time - last_time_lights_changed) >= self.time_between_changes:
                 last_time_lights_changed = self.simulation.current_time
-                done = self.simulation.advance_step([1] * self.rows * self.cols)
+                done = self.simulation.advance_step([1] * self.rows * self.cols, 1)
             else:
-                done = self.simulation.advance_step([0] * self.rows * self.cols)
+                done = self.simulation.advance_step([0] * self.rows * self.cols, 1)
 
 
 if __name__ == '__main__':
