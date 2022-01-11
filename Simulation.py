@@ -49,7 +49,7 @@ class Simulation:
                 while not intersection.h_queue.empty():
                     accumulated_waiting_time += intersection.h_queue.get().waiting_time
 
-        #cars_leaving_simulator = self.outer_intersection.v_queue.qsize() + self.outer_intersection.h_queue.qsize()
+        # cars_leaving_simulator = self.outer_intersection.v_queue.qsize() + self.outer_intersection.h_queue.qsize()
         average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
 
         return average_waiting_time, cars_leaving_simulator
@@ -61,7 +61,7 @@ class Simulation:
             "vertical_num_of_cars": [[0] * self.rows * self.cols],
             "horizontal_waiting_time": [[-1] * self.road_length] * self.rows * self.cols,
             "vertical_waiting_time": [[-1] * self.road_length] * self.rows * self.cols
-            #"average_waiting_time": [self.get_average_waiting_time()[0]]
+            # "average_waiting_time": [self.get_average_waiting_time()[0]]
         }
 
         for i, row in enumerate(self.city_map):
@@ -89,17 +89,20 @@ class Simulation:
 
         instant_to_process = self.current_time
 
-        while instant_to_process == self.event_list[0].time:
-            if self.event_list and self.current_time <= self.simulation_time:
+        while self.event_list and instant_to_process == self.event_list[0].time:
+            if self.current_time <= self.simulation_time:
                 current_event = self.event_list.pop(0)
                 self.current_time = current_event.time
                 if current_event.event_type == 'NEW_CAR':
                     MapManager.new_car(self, current_event)
                 else:
                     current_event.intersection.move_car(current_event)
-            elif not self.event_list:
-                self.current_time = self.current_time + 1
             if self.current_time > self.simulation_time:
                 return True
+
+        if self.event_list:
+            self.current_time = self.event_list[0].time
+        else:
+            self.current_time = self.current_time + 1
 
         return False

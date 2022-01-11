@@ -66,9 +66,9 @@ class Program:
         while not done:
             if (self.simulation.current_time - last_time_lights_changed) >= self.time_between_changes:
                 last_time_lights_changed = self.simulation.current_time
-                done = self.simulation.advance_step([1] * self.rows * self.cols, 1)
+                done = self.simulation.advance_step([1] * self.rows * self.cols)
             else:
-                done = self.simulation.advance_step([0] * self.rows * self.cols, 1)
+                done = self.simulation.advance_step([0] * self.rows * self.cols)
 
 
 if __name__ == '__main__':
