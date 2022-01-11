@@ -89,7 +89,7 @@ class Simulation:
 
         instant_to_process = self.current_time
 
-        while self.event_list and instant_to_process == self.event_list[0].time:
+        while self.event_list and self.event_list[0].time - instant_to_process <= 5:
             if self.current_time <= self.simulation_time:
                 current_event = self.event_list.pop(0)
                 self.current_time = current_event.time
