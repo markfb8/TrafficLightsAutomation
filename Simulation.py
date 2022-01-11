@@ -36,8 +36,10 @@ class Simulation:
         # Virtual outer intersection
         while not self.outer_intersection.v_queue.empty():
             accumulated_waiting_time += self.outer_intersection.v_queue.get().waiting_time
+            cars_leaving_simulator += 1
         while not self.outer_intersection.h_queue.empty():
             accumulated_waiting_time += self.outer_intersection.h_queue.get().waiting_time
+            cars_leaving_simulator += 1
 
         # Map intersections
         for i, row in enumerate(self.city_map):
@@ -47,7 +49,7 @@ class Simulation:
                 while not intersection.h_queue.empty():
                     accumulated_waiting_time += intersection.h_queue.get().waiting_time
 
-        cars_leaving_simulator = self.outer_intersection.v_queue.qsize() + self.outer_intersection.h_queue.qsize()
+        #cars_leaving_simulator = self.outer_intersection.v_queue.qsize() + self.outer_intersection.h_queue.qsize()
         average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
 
         return average_waiting_time, cars_leaving_simulator
