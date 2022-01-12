@@ -16,40 +16,33 @@ class Simulation:
         self.simulation_time = simulation_time
 
         self.current_time = 0
+        self.cars_created = 0
         self.event_list = []
         self.outer_intersection = Intersection(self, 99999, 99999)
-        self.city_map = None
-        self.cars_created = 0
+        self.city_map = MapManager.create_map(self)
+        MapManager.first_cars(self)
 
     def add_event(self, event):
         self.event_list.append(event)
         self.event_list.sort(key=lambda x: x.time, reverse=False)
 
-    def start_simulation(self):
-        self.city_map = MapManager.create_map(self)
-        MapManager.first_cars(self)
-
     def get_average_waiting_time(self):
+        cars_leaving_simulator = self.outer_intersection.v_queue.qsize() + self.outer_intersection.h_queue.qsize()
+
         accumulated_waiting_time = 0
-        cars_leaving_simulator = 0
-
         # Virtual outer intersection
-        while not self.outer_intersection.v_queue.empty():
-            accumulated_waiting_time += self.outer_intersection.v_queue.get().waiting_time
-            cars_leaving_simulator += 1
-        while not self.outer_intersection.h_queue.empty():
-            accumulated_waiting_time += self.outer_intersection.h_queue.get().waiting_time
-            cars_leaving_simulator += 1
-
+        for car in list(self.outer_intersection.v_queue.queue):
+            accumulated_waiting_time += car.waiting_time
+        for car in list(self.outer_intersection.h_queue.queue):
+            accumulated_waiting_time += car.waiting_time
         # Map intersections
         for i, row in enumerate(self.city_map):
             for j, intersection in enumerate(row):
-                while not intersection.v_queue.empty():
-                    accumulated_waiting_time += intersection.v_queue.get().waiting_time
-                while not intersection.h_queue.empty():
-                    accumulated_waiting_time += intersection.h_queue.get().waiting_time
+                for car in list(intersection.v_queue.queue):
+                    accumulated_waiting_time += car.waiting_time
+                for car in list(intersection.h_queue.queue):
+                    accumulated_waiting_time += car.waiting_time
 
-        # cars_leaving_simulator = self.outer_intersection.v_queue.qsize() + self.outer_intersection.h_queue.qsize()
         average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
 
         return average_waiting_time, cars_leaving_simulator
@@ -61,7 +54,6 @@ class Simulation:
             "vertical_num_of_cars": [[0] * self.rows * self.cols],
             "horizontal_waiting_time": [[-1] * self.road_length] * self.rows * self.cols,
             "vertical_waiting_time": [[-1] * self.road_length] * self.rows * self.cols
-            # "average_waiting_time": [self.get_average_waiting_time()[0]]
         }
 
         for i, row in enumerate(self.city_map):
@@ -84,7 +76,7 @@ class Simulation:
                 if action[i * self.cols + j] >= 0.5:
                     intersection.switch_traffic_light()
 
-    def advance_step(self, action):
+    def advance_step(self, action, standard_mode):
         self.change_state(action)
 
         instant_to_process = self.current_time
@@ -97,8 +89,10 @@ class Simulation:
                     MapManager.new_car(self, current_event)
                 else:
                     current_event.intersection.move_car(current_event)
-            if self.current_time > self.simulation_time:
+            else:
                 return True
+            if standard_mode:
+                break
 
         if self.event_list:
             self.current_time = self.event_list[0].time
