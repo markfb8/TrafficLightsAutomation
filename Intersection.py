@@ -7,6 +7,7 @@ class Intersection:
     def __init__(self, simulation, max_size_h, max_size_v):
         self.simulation = simulation
         self.green_light = 'VERTICAL'
+        self.last_light_switch = 0
         self.v_queue = Queue(max_size_v)
         self.h_queue = Queue(max_size_h)
         self.v_out_intersection = None
@@ -20,6 +21,7 @@ class Intersection:
 
     def switch_traffic_light(self):
         self.green_light = 'VERTICAL' if self.green_light == 'HORIZONTAL' else 'HORIZONTAL'
+        self.last_light_switch = self.simulation.current_time
 
         queue, _ = self.get_attributes_given_direction(self.green_light)
         if not queue.empty():

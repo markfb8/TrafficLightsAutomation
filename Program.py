@@ -69,10 +69,8 @@ class Program:
     def manage_logs(self, action, operation):
         if operation == 'create':
             self.logs = [[]] * self.simulation.rows * self.simulation.cols
-        elif operation == 'update':
-            for i in range(self.simulation.rows * self.simulation.cols):
-                if action[i] >= 0.5:
-                    self.logs[i].append(self.simulation.current_time)
+        elif operation == 'update' and action < self.rows * self.cols:
+            self.logs[action].append(self.simulation.current_time)
         else:
             logs_file = open('./data/logs.txt', 'w')
 
@@ -87,9 +85,9 @@ class Program:
         self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
 
         if exists('models/' + self.model_name + '.zip'):
-            model = PPO.load('models/' + self.model_name, env=Environment(self.simulation))
+            model = PPO.load('models/' + self.model_name, env=Environment(self.simulation, True))
         else:
-            model = PPO(policy='MultiInputPolicy', env=Environment(self.simulation), verbose=1)
+            model = PPO(policy='MultiInputPolicy', env=Environment(self.simulation, True), verbose=1)
 
         while True:
             model.learn(total_timesteps=10240, n_eval_episodes=5)
@@ -98,7 +96,7 @@ class Program:
     def predict(self):
         self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
 
-        env = Environment(self.simulation)
+        env = Environment(self.simulation, False)
         model = PPO.load('models/' + self.model_name, env=env)
         observation = env.reset(False)
 

@@ -47,41 +47,44 @@ class Simulation:
 
     def get_observation(self):
         observation = {
-            'lights_settings': [[0] * self.rows * self.cols],
-            "horizontal_num_of_cars": [[0] * self.rows * self.cols],
-            "vertical_num_of_cars": [[0] * self.rows * self.cols],
-            "horizontal_waiting_time": [[-1] * self.road_length] * self.rows * self.cols,
-            "vertical_waiting_time": [[-1] * self.road_length] * self.rows * self.cols,
-            "average_waiting_time": [[self.get_average_waiting_time()[0]]]
+            'current_time': [self.current_time],
+            # 'average_waiting_time': [self.get_average_waiting_time()[0]],
+            # 'lights_settings': [0] * self.rows * self.cols,
+            'ready_to_switch': [self.current_time] * self.rows * self.cols
+            # 'horizontal_num_of_cars_waiting': [0] * self.rows * self.cols,
+            # 'vertical_num_of_cars_waiting': [0] * self.rows * self.cols,
+            # 'horizontal_waiting_time': [[-1] * self.road_length] * self.rows * self.cols,
+            # 'vertical_waiting_time': [[-1] * self.road_length] * self.rows * self.cols
         }
 
         for i, row in enumerate(self.city_map):
             for j, intersection in enumerate(row):
                 flattened_index = i * self.cols + j
-                observation['lights_settings'][0][flattened_index] = 0 if intersection.green_light == 'VERTICAL' else 1
-                observation['horizontal_num_of_cars'][0][flattened_index] = intersection.h_queue.qsize()
-                observation['vertical_num_of_cars'][0][flattened_index] = intersection.v_queue.qsize()
+                # observation['lights_settings'][flattened_index] = 0 if intersection.green_light == 'VERTICAL' else 1
+                observation['ready_to_switch'][flattened_index] = 1 if self.current_time - intersection.last_light_switch > 10 else 0
 
-                for k, car in enumerate(intersection.h_queue.queue):
-                    observation['horizontal_waiting_time'][flattened_index][k] = self.current_time - car.arrival_time
-                for k, car in enumerate(intersection.v_queue.queue):
-                    observation['vertical_waiting_time'][flattened_index][k] = self.current_time - car.arrival_time
+                # for k, car in enumerate(intersection.h_queue.queue):
+                    # observation['horizontal_num_of_cars_waiting'][flattened_index] += 1 if self.current_time >= car.arrival_time else 0
+                    # observation['horizontal_waiting_time'][flattened_index][k] = self.current_time - car.arrival_time if self.current_time >= car.arrival_time else -1
+                # for k, car in enumerate(intersection.v_queue.queue):
+                    # observation['vertical_num_of_cars_waiting'][flattened_index] += 1 if self.current_time >= car.arrival_time else 0
+                    # observation['vertical_waiting_time'][flattened_index][k] = self.current_time - car.arrival_time if self.current_time > car.arrival_time else -1
 
         return observation
 
     def change_state(self, action):
-        for i, row in enumerate(self.city_map):
-            for j, intersection in enumerate(row):
-                if action[i * self.cols + j] >= 0.5:
-                    intersection.switch_traffic_light()
+        # The first half of actions correspond to switching the light of the corresponding intersection, the other half to not changing anything
+        if action < self.rows * self.cols:
+            i = int(action/self.cols)
+            j = action % self.cols
 
-    def advance_step(self, action, single_processing_mode=True):
+            self.city_map[i][j].switch_traffic_light()
+
+    def advance_step(self, action):
         self.change_state(action)
 
-        instant_to_process = self.current_time
-
-        while self.event_list and self.event_list[0].time - instant_to_process <= 10:
-            if self.current_time <= self.simulation_time:
+        if self.current_time <= self.simulation_time:
+            if self.event_list:
                 current_event = self.event_list.pop(0)
                 self.current_time = current_event.time
                 if current_event.event_type == 'NEW_CAR':
@@ -89,13 +92,8 @@ class Simulation:
                 else:
                     current_event.intersection.move_car(current_event)
             else:
-                return True
-            if single_processing_mode:
-                break
-
-        if self.event_list:
-            self.current_time = self.event_list[0].time
+                self.current_time = self.current_time + 1
         else:
-            self.current_time = self.current_time + 1
+            return True
 
         return False
