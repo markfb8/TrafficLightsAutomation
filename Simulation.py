@@ -1,11 +1,6 @@
 import MapManager
 from Intersection import Intersection
 
-CROSSING_STREET_AND_INTERSECTION = 10
-CROSSING_AFTER_GREEN = 5
-CROSSING_AFTER_BUSY_ROAD = 3
-CROSSING_BEHIND_CAR = 1
-
 
 class Simulation:
     def __init__(self, traffic_volume: int, rows: int, cols: int, road_length: int, simulation_time: int):
@@ -14,6 +9,9 @@ class Simulation:
         self.cols = cols
         self.road_length = road_length
         self.simulation_time = simulation_time
+
+        self.SWITCH_TO_GREEN_TIME = 3
+        self.BUSY_ROAD_WAITING_TIME = 3
 
         self.current_time = 0
         self.cars_created = 0
@@ -43,7 +41,7 @@ class Simulation:
                 for car in list(intersection.h_queue.queue):
                     accumulated_waiting_time += car.waiting_time
 
-        average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 'no cars left the simulator'
+        average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 999999999
 
         return average_waiting_time, cars_leaving_simulator
 
@@ -53,7 +51,8 @@ class Simulation:
             "horizontal_num_of_cars": [[0] * self.rows * self.cols],
             "vertical_num_of_cars": [[0] * self.rows * self.cols],
             "horizontal_waiting_time": [[-1] * self.road_length] * self.rows * self.cols,
-            "vertical_waiting_time": [[-1] * self.road_length] * self.rows * self.cols
+            "vertical_waiting_time": [[-1] * self.road_length] * self.rows * self.cols,
+            "average_waiting_time": [[self.get_average_waiting_time()[0]]]
         }
 
         for i, row in enumerate(self.city_map):
@@ -64,9 +63,9 @@ class Simulation:
                 observation['vertical_num_of_cars'][0][flattened_index] = intersection.v_queue.qsize()
 
                 for k, car in enumerate(intersection.h_queue.queue):
-                    observation['horizontal_waiting_time'][flattened_index][k] = self.current_time - car.time
+                    observation['horizontal_waiting_time'][flattened_index][k] = self.current_time - car.arrival_time
                 for k, car in enumerate(intersection.v_queue.queue):
-                    observation['vertical_waiting_time'][flattened_index][k] = self.current_time - car.time
+                    observation['vertical_waiting_time'][flattened_index][k] = self.current_time - car.arrival_time
 
         return observation
 
@@ -76,12 +75,12 @@ class Simulation:
                 if action[i * self.cols + j] >= 0.5:
                     intersection.switch_traffic_light()
 
-    def advance_step(self, action, standard_mode):
+    def advance_step(self, action, single_processing_mode=True):
         self.change_state(action)
 
         instant_to_process = self.current_time
 
-        while self.event_list and self.event_list[0].time - instant_to_process <= 5:
+        while self.event_list and self.event_list[0].time - instant_to_process <= 10:
             if self.current_time <= self.simulation_time:
                 current_event = self.event_list.pop(0)
                 self.current_time = current_event.time
@@ -91,7 +90,7 @@ class Simulation:
                     current_event.intersection.move_car(current_event)
             else:
                 return True
-            if standard_mode:
+            if single_processing_mode:
                 break
 
         if self.event_list:

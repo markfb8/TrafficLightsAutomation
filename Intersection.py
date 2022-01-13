@@ -24,7 +24,7 @@ class Intersection:
         queue, _ = self.get_attributes_given_direction(self.green_light)
         if not queue.empty():
             self.simulation.event_list = [event for event in self.simulation.event_list if event.intersection != self or event.event_type == 'NEW_CAR']
-            self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + Simulation.CROSSING_AFTER_GREEN, self.green_light, self))
+            self.simulation.add_event(Event('MOVE_CAR', True, self.simulation.current_time + self.simulation.SWITCH_TO_GREEN_TIME, self.green_light, self))
 
     def move_car(self, event):
         this_queue, out_intersection = self.get_attributes_given_direction(event.direction)
@@ -33,19 +33,21 @@ class Intersection:
 
         # If (green light) and (out queue has space for the car)
         if self.green_light == event.direction and out_queue.qsize() < out_queue.maxsize:
-            # If not event created for the out intersection
-            if out_queue.empty() and out_out_intersection is not None:
-                self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + Simulation.CROSSING_STREET_AND_INTERSECTION, out_direction, out_intersection))
-
             car = this_queue.get()
-            car.add_time(self.simulation.current_time - car.time)
-            car.new_time(self.simulation.current_time)
+            travel_time_to_next_position = car.calculate_travel_time_to_next_position(event.from_stop, True, self.simulation.road_length - out_queue.qsize())
+            car.waiting_time += self.simulation.current_time - car.arrival_time
+            car.arrival_time = self.simulation.current_time + travel_time_to_next_position
             out_queue.put(car)
+
+            # If not event created for the out intersection
+            if out_queue.qsize() == 1 and out_out_intersection is not None:
+                self.simulation.add_event(Event('MOVE_CAR', False, self.simulation.current_time + travel_time_to_next_position, out_direction, out_intersection))
 
             # If there are more cars waiting
             if not this_queue.empty():
-                self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + Simulation.CROSSING_BEHIND_CAR, event.direction, self))
+                time_to_next_event = this_queue.queue[0].calculate_time_to_next_event(event.from_stop)
+                self.simulation.add_event(Event('MOVE_CAR', False, self.simulation.current_time + time_to_next_event, event.direction, self))
 
         # If (green light) and (out queue does not have space for the car)
         elif self.green_light == event.direction and out_queue.qsize() >= out_queue.maxsize:
-            self.simulation.add_event(Event('MOVE_CAR', self.simulation.current_time + Simulation.CROSSING_AFTER_BUSY_ROAD, event.direction, self))
+            self.simulation.add_event(Event('MOVE_CAR', True, self.simulation.current_time + self.simulation.BUSY_ROAD_WAITING_TIME, event.direction, self))

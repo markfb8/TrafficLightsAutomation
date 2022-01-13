@@ -1,6 +1,7 @@
 import gym
 from gym import spaces
 import numpy as np
+import copy
 import learning_data
 
 from Simulation import Simulation
@@ -17,7 +18,8 @@ class Environment(gym.Env):
             "horizontal_num_of_cars": spaces.Box(low=0, high=self.simulation.road_length, shape=(1, self.simulation.rows * self.simulation.cols), dtype=np.uint8),
             "vertical_num_of_cars": spaces.Box(low=0, high=self.simulation.road_length, shape=(1, self.simulation.rows * self.simulation.cols), dtype=np.uint8),
             "horizontal_waiting_time": spaces.Box(low=-1, high=65535, shape=(self.simulation.rows * self.simulation.cols, self.simulation.road_length), dtype=np.int32),
-            "vertical_waiting_time": spaces.Box(low=-1, high=65535, shape=(self.simulation.rows * self.simulation.cols, self.simulation.road_length), dtype=np.int32)
+            "vertical_waiting_time": spaces.Box(low=-1, high=65535, shape=(self.simulation.rows * self.simulation.cols, self.simulation.road_length), dtype=np.int32),
+            "average_waiting_time": spaces.Box(low=0, high=2147483647, shape=(1, 1), dtype=np.int32)
         })
 
     def reset(self, reset_simulation=True):
@@ -31,11 +33,13 @@ class Environment(gym.Env):
 
     def step(self, action):
         previous_observation = learning_data.previous_observation
-        done = self.simulation.advance_step(action, False)
+        done = self.simulation.advance_step(action)
         current_observation = self.simulation.get_observation()
         learning_data.previous_observation = current_observation
 
-        reward = self.reward_function_1(previous_observation, current_observation)
+
+
+        reward = self.reward_function_5(previous_observation, current_observation)
 
         return current_observation, reward, done, {}
 
@@ -121,5 +125,5 @@ class Environment(gym.Env):
 
         return reward
 
-    def reward_function_5(self, previous_observation, action, current_observation):
-        return previous_observation['average_waiting_time'][0] - current_observation['average_waiting_time'][0]
+    def reward_function_5(self, previous_observation, current_observation):
+        return previous_observation['average_waiting_time'][0][0] - current_observation['average_waiting_time'][0][0]

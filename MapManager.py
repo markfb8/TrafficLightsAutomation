@@ -29,9 +29,9 @@ def first_cars(simulation):
     for i, row in enumerate(simulation.city_map):
         for j, intersection in enumerate(row):
             if (i % 2 == 0 and j == 0) or (i % 2 != 0 and j == simulation.cols - 1):  # If at the start of an even row or at the end of an odd row, create car
-                simulation.add_event(Event('NEW_CAR', 0, 'HORIZONTAL', intersection))
+                simulation.add_event(Event('NEW_CAR', None, 0, 'HORIZONTAL', intersection))
             if (j % 2 == 0 and i == 0) or (j % 2 != 0 and i == simulation.rows - 1):  # If at the start of an even column or at the end of an odd column, create car
-                simulation.add_event(Event('NEW_CAR', 0, 'VERTICAL', intersection))
+                simulation.add_event(Event('NEW_CAR', None, 0, 'VERTICAL', intersection))
 
 
 def new_car(simulation, event):
@@ -39,12 +39,15 @@ def new_car(simulation, event):
 
     if queue.qsize() < queue.maxsize:
         simulation.cars_created = simulation.cars_created + 1
-        queue.put(Car(event.time))
-        simulation.add_event(Event('NEW_CAR', event.time + calculate_added_time(simulation), event.direction, event.intersection))
-        if queue.empty():
-            simulation.add_event(Event('MOVE_CAR', simulation.current_time + Simulation.CROSSING_STREET_AND_INTERSECTION, event.direction, event.intersection))
+        car = Car(simulation.current_time)
+        travel_time_to_next_position = car.calculate_travel_time_to_next_position(False, False, simulation.road_length - queue.qsize())
+        car.arrival_time = simulation.current_time + travel_time_to_next_position
+        queue.put(car)
+        simulation.add_event(Event('NEW_CAR', None, event.time + calculate_added_time(simulation), event.direction, event.intersection))
+        if queue.qsize() == 1:
+            simulation.add_event(Event('MOVE_CAR', False, simulation.current_time + travel_time_to_next_position, event.direction, event.intersection))
     else:
-        simulation.add_event(Event('NEW_CAR', event.time + 10, event.direction, event.intersection))
+        simulation.add_event(Event('NEW_CAR', None, event.time + 10, event.direction, event.intersection))
 
 
 def calculate_added_time(simulation):
@@ -54,3 +57,9 @@ def calculate_added_time(simulation):
         return randint(60, 200)
     elif simulation.traffic_volume == 3:
         return randint(30, 60)
+    elif simulation.traffic_volume == 4:
+        return randint(10, 20)
+    elif simulation.traffic_volume == 5:
+        return randint(3, 10)
+    elif simulation.traffic_volume == 6:
+        return randint(1, 3)
