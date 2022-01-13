@@ -1,6 +1,6 @@
 # TrafficLightsAutomation
 
-Álvaro Andrés
-Marc Fernández
-Pere Ginebra
-Daniel Sarrià
+- Álvaro Andrés
+- Marc Fernández
+- Pere Ginebra
+- Daniel Sarrià
