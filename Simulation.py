@@ -49,10 +49,10 @@ class Simulation:
         observation = {
             'current_time': [self.current_time],
             # 'average_waiting_time': [self.get_average_waiting_time()[0]],
-            # 'lights_settings': [0] * self.rows * self.cols,
-            'ready_to_switch': [self.current_time] * self.rows * self.cols
-            # 'horizontal_num_of_cars_waiting': [0] * self.rows * self.cols,
-            # 'vertical_num_of_cars_waiting': [0] * self.rows * self.cols,
+            'lights_settings': [0] * self.rows * self.cols,
+            'ready_to_switch': [self.current_time] * self.rows * self.cols,
+            'horizontal_num_of_cars_waiting': [0] * self.rows * self.cols,
+            'vertical_num_of_cars_waiting': [0] * self.rows * self.cols
             # 'horizontal_waiting_time': [[-1] * self.road_length] * self.rows * self.cols,
             # 'vertical_waiting_time': [[-1] * self.road_length] * self.rows * self.cols
         }
