@@ -20,8 +20,8 @@ class Environment(gym.Env):
             'ready_to_switch': spaces.Box(low=0, high=1, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8),
             'horizontal_num_of_cars_waiting': spaces.Box(low=0, high=self.simulation.road_length, shape=(self.simulation.rows * self.simulation.cols, ), dtype=np.uint8),
             'vertical_num_of_cars_waiting': spaces.Box(low=0, high=self.simulation.road_length, shape=(self.simulation.rows * self.simulation.cols, ), dtype=np.uint8)
-            # 'horizontal_waiting_time': spaces.Box(low=-1, high=65535, shape=(self.simulation.rows * self.simulation.cols, self.simulation.road_length), dtype=np.int32),
-            # 'vertical_waiting_time': spaces.Box(low=-1, high=65535, shape=(self.simulation.rows * self.simulation.cols, self.simulation.road_length), dtype=np.int32)
+            # 'horizontal_waiting_time': spaces.Box(low=-1, high=65535, shape=(self.simulation.rows * self.simulation.cols, 1000), dtype=np.int32),
+            # 'vertical_waiting_time': spaces.Box(low=-1, high=65535, shape=(self.simulation.rows * self.simulation.cols, 1000), dtype=np.int32)
         })
 
     def reset(self, reset_simulation=True):
@@ -152,6 +152,10 @@ class Environment(gym.Env):
                 reward += (previous_observation['horizontal_num_of_cars_waiting'][action] - previous_observation['vertical_num_of_cars_waiting'][action]) / self.simulation.road_length
             if previous_observation['ready_to_switch'][action] == 0:
                 reward -= 1
+
+        # for intersection in range(self.simulation.rows * self.simulation.cols):
+        #    if intersection != action:
+
 
         return reward
 

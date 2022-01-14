@@ -1,3 +1,5 @@
+from queue import Queue
+
 import numpy as np
 
 from Car import Car
@@ -25,12 +27,14 @@ def create_map(simulation):
     return city_map
 
 
-def first_cars(simulation):
+def manage_simulation_entry_points(simulation):
     for i, row in enumerate(simulation.city_map):
         for j, intersection in enumerate(row):
-            if (i % 2 == 0 and j == 0) or (i % 2 != 0 and j == simulation.cols - 1):  # If at the start of an even row or at the end of an odd row, create car
+            if (i % 2 == 0 and j == 0) or (i % 2 != 0 and j == simulation.cols - 1):  # If at the start of an even row or at the end of an odd row
+                intersection.h_queue = Queue()
                 simulation.add_event(Event('NEW_CAR', None, 0, 'HORIZONTAL', intersection))
-            if (j % 2 == 0 and i == 0) or (j % 2 != 0 and i == simulation.rows - 1):  # If at the start of an even column or at the end of an odd column, create car
+            if (j % 2 == 0 and i == 0) or (j % 2 != 0 and i == simulation.rows - 1):  # If at the start of an even column or at the end of an odd column
+                intersection.v_queue = Queue()
                 simulation.add_event(Event('NEW_CAR', None, 0, 'VERTICAL', intersection))
 
 
@@ -47,7 +51,7 @@ def new_car(simulation, event):
         if queue.qsize() == 1:
             simulation.add_event(Event('MOVE_CAR', False, simulation.current_time + travel_time_to_next_position, event.direction, event.intersection))
     else:
-        simulation.add_event(Event('NEW_CAR', None, event.time + 10, event.direction, event.intersection))
+        simulation.add_event(Event('NEW_CAR', None, event.time + 2, event.direction, event.intersection))
 
 
 def calculate_added_time(simulation):

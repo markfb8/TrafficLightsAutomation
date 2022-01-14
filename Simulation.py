@@ -18,7 +18,7 @@ class Simulation:
         self.event_list = []
         self.outer_intersection = Intersection(self, 99999, 99999)
         self.city_map = MapManager.create_map(self)
-        MapManager.first_cars(self)
+        MapManager.manage_simulation_entry_points(self)
 
     def add_event(self, event):
         self.event_list.append(event)
@@ -53,8 +53,8 @@ class Simulation:
             'ready_to_switch': [self.current_time] * self.rows * self.cols,
             'horizontal_num_of_cars_waiting': [0] * self.rows * self.cols,
             'vertical_num_of_cars_waiting': [0] * self.rows * self.cols
-            # 'horizontal_waiting_time': [[-1] * self.road_length] * self.rows * self.cols,
-            # 'vertical_waiting_time': [[-1] * self.road_length] * self.rows * self.cols
+            # 'horizontal_waiting_time': [[-1] * 1000] * self.rows * self.cols,
+            # 'vertical_waiting_time': [[-1] * 1000] * self.rows * self.cols
         }
 
         for i, row in enumerate(self.city_map):

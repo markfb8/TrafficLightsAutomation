@@ -69,8 +69,9 @@ class Program:
     def manage_logs(self, action, operation):
         if operation == 'create':
             self.logs = [[]] * self.simulation.rows * self.simulation.cols
-        elif operation == 'update' and action < self.rows * self.cols:
-            self.logs[action].append(self.simulation.current_time)
+        elif operation == 'update':
+            if action < self.rows * self.cols:
+                self.logs[action].append(self.simulation.current_time)
         else:
             logs_file = open('./data/logs.txt', 'w')
 
@@ -118,9 +119,10 @@ class Program:
         while not done:
             if (self.simulation.current_time - last_time_lights_changed) >= self.time_between_changes:
                 last_time_lights_changed = self.simulation.current_time
-                done = self.simulation.advance_step([1] * self.rows * self.cols)
+                for i in range(self.simulation.rows * self.simulation.cols):
+                    done = self.simulation.advance_step(i)
             else:
-                done = self.simulation.advance_step([0] * self.rows * self.cols)
+                done = self.simulation.advance_step(self.rows * self.cols)
 
         self.print_statistics('Statistics' + additional_statistics_text + ':')
 
