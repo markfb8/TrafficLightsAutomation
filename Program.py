@@ -114,17 +114,21 @@ class Program:
     def standard(self, additional_statistics_text=''):
         self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
 
+        self.manage_logs([], 'create')
         last_time_lights_changed = 0
         done = False
         while not done:
             if (self.simulation.current_time - last_time_lights_changed) >= self.time_between_changes:
+                self.simulation.change_all_lights()
                 last_time_lights_changed = self.simulation.current_time
+
                 for i in range(self.simulation.rows * self.simulation.cols):
-                    done = self.simulation.advance_step(i)
+                    self.manage_logs(i, 'update')
             else:
                 done = self.simulation.advance_step(self.rows * self.cols)
 
         self.print_statistics('Statistics' + additional_statistics_text + ':')
+        self.manage_logs([], 'write')
 
     def standard_range(self):
         standard_info = open('./data/standard_info.txt', 'w')

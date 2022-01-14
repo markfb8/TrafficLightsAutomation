@@ -56,14 +56,14 @@ def new_car(simulation, event):
 
 def calculate_added_time(simulation):
     if simulation.traffic_volume == 1:
-        return randint(200, 1000)
+        return randint(60, 120)
     elif simulation.traffic_volume == 2:
-        return randint(60, 200)
-    elif simulation.traffic_volume == 3:
         return randint(30, 60)
+    elif simulation.traffic_volume == 3:
+        return randint(15, 30)
     elif simulation.traffic_volume == 4:
-        return randint(10, 20)
+        return randint(6, 15)
     elif simulation.traffic_volume == 5:
-        return randint(3, 10)
+        return randint(3, 6)
     elif simulation.traffic_volume == 6:
         return randint(1, 3)

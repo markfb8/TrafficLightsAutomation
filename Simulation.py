@@ -37,11 +37,11 @@ class Simulation:
         for i, row in enumerate(self.city_map):
             for j, intersection in enumerate(row):
                 for car in list(intersection.v_queue.queue):
-                    accumulated_waiting_time += car.waiting_time
+                    accumulated_waiting_time += car.waiting_time + self.current_time - car.arrival_time
                 for car in list(intersection.h_queue.queue):
-                    accumulated_waiting_time += car.waiting_time
+                    accumulated_waiting_time += car.waiting_time + self.current_time - car.arrival_time
 
-        average_waiting_time = accumulated_waiting_time / cars_leaving_simulator if cars_leaving_simulator > 0 else 999999999
+        average_waiting_time = accumulated_waiting_time / self.cars_created
 
         return average_waiting_time, cars_leaving_simulator
 
@@ -71,6 +71,11 @@ class Simulation:
                     # observation['vertical_waiting_time'][flattened_index][k] = self.current_time - car.arrival_time if self.current_time > car.arrival_time else -1
 
         return observation
+
+    def change_all_lights(self):
+        for row in self.city_map:
+            for intersection in row:
+                intersection.switch_traffic_light()
 
     def change_state(self, action):
         # The first half of actions correspond to switching the light of the corresponding intersection, the other half to not changing anything
