@@ -23,9 +23,10 @@ class Intersection:
         self.green_light = 'VERTICAL' if self.green_light == 'HORIZONTAL' else 'HORIZONTAL'
         self.last_light_switch = self.simulation.current_time
 
+        self.simulation.event_list = [event for event in self.simulation.event_list if event.intersection != self or event.event_type == 'NEW_CAR']
+
         queue, _ = self.get_attributes_given_direction(self.green_light)
         if not queue.empty():
-            self.simulation.event_list = [event for event in self.simulation.event_list if event.intersection != self or event.event_type == 'NEW_CAR']
             self.simulation.add_event(Event('MOVE_CAR', True, self.simulation.current_time + self.simulation.SWITCH_TO_GREEN_TIME, self.green_light, self))
 
     def move_car(self, event):

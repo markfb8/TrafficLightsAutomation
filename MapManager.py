@@ -31,10 +31,10 @@ def manage_simulation_entry_points(simulation):
     for i, row in enumerate(simulation.city_map):
         for j, intersection in enumerate(row):
             if (i % 2 == 0 and j == 0) or (i % 2 != 0 and j == simulation.cols - 1):  # If at the start of an even row or at the end of an odd row
-                intersection.h_queue = Queue()
+                intersection.h_queue = Queue(1000)
                 simulation.add_event(Event('NEW_CAR', None, 0, 'HORIZONTAL', intersection))
             if (j % 2 == 0 and i == 0) or (j % 2 != 0 and i == simulation.rows - 1):  # If at the start of an even column or at the end of an odd column
-                intersection.v_queue = Queue()
+                intersection.v_queue = Queue(1000)
                 simulation.add_event(Event('NEW_CAR', None, 0, 'VERTICAL', intersection))
 
 

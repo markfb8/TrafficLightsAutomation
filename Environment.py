@@ -16,10 +16,10 @@ class Environment(gym.Env):
         self.observation_space = spaces.Dict({
             'current_time': spaces.Box(low=0, high=2147483647, shape=(1,), dtype=np.int32),
             # 'average_waiting_time': spaces.Box(low=0, high=2147483647, shape=(1,), dtype=np.int32),
-            'lights_settings': spaces.Box(low=0, high=1, shape=(self.simulation.rows * self.simulation.cols, ), dtype=np.uint8),
+            'lights_settings': spaces.Box(low=0, high=1, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8),
             'ready_to_switch': spaces.Box(low=0, high=1, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8),
-            'horizontal_num_of_cars_waiting': spaces.Box(low=0, high=self.simulation.road_length, shape=(self.simulation.rows * self.simulation.cols, ), dtype=np.uint8),
-            'vertical_num_of_cars_waiting': spaces.Box(low=0, high=self.simulation.road_length, shape=(self.simulation.rows * self.simulation.cols, ), dtype=np.uint8)
+            'horizontal_num_of_cars_waiting': spaces.Box(low=0, high=self.simulation.road_length, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8),
+            'vertical_num_of_cars_waiting': spaces.Box(low=0, high=self.simulation.road_length, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8)
             # 'horizontal_waiting_time': spaces.Box(low=-1, high=65535, shape=(self.simulation.rows * self.simulation.cols, 1000), dtype=np.int32),
             # 'vertical_waiting_time': spaces.Box(low=-1, high=65535, shape=(self.simulation.rows * self.simulation.cols, 1000), dtype=np.int32)
         })
@@ -156,6 +156,4 @@ class Environment(gym.Env):
         # for intersection in range(self.simulation.rows * self.simulation.cols):
         #    if intersection != action:
 
-
         return reward
-
