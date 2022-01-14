@@ -25,17 +25,11 @@ class Intersection:
 
         queue, _ = self.get_attributes_given_direction(self.green_light)
         if not queue.empty():
-            # self.simulation.event_list = [event for event in self.simulation.event_list if event.intersection != self or self.green_light != event.direction or event.event_type == 'NEW_CAR']
-            # self.simulation.add_event(Event('MOVE_CAR', True, self.simulation.current_time + self.simulation.SWITCH_TO_GREEN_TIME, self.green_light, self))
-
             event_found = False
             for i, event in enumerate(self.simulation.event_list):
                 if event.intersection == self and event.event_type == 'MOVE_CAR' and self.green_light == event.direction:
                     event_found = True
                     break
-                    # if self.simulation.current_time < event.time < self.simulation.current_time + self.simulation.SWITCH_TO_GREEN_TIME:
-                        # del self.simulation.event_list[i]
-                        # self.simulation.add_event(Event('MOVE_CAR', True, self.simulation.current_time + self.simulation.SWITCH_TO_GREEN_TIME, self.green_light, self))
 
             if not event_found:
                 if self.simulation.current_time >= queue.queue[0].arrival_time:

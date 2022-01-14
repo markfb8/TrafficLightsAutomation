@@ -68,17 +68,17 @@ class Program:
 
     def manage_logs(self, action, operation):
         if operation == 'create':
-            self.logs = [[]] * self.simulation.rows * self.simulation.cols
+            self.logs = [[] for _ in range(self.simulation.rows * self.simulation.cols)]
         elif operation == 'update':
             if action < self.rows * self.cols:
                 self.logs[action].append(self.simulation.current_time)
         else:
             logs_file = open('./data/logs.txt', 'w')
 
-            for i in range(self.simulation.rows * self.simulation.cols):
-                logs_file.write('INTERSECTION NUMBER ' + str(i) + ':\n')
-                for j in range(len(self.logs[i])):
-                    logs_file.write(str(self.logs[i][j]) + '\n')
+            for intersection in range(self.simulation.rows * self.simulation.cols):
+                logs_file.write('INTERSECTION NUMBER ' + str(intersection) + ':\n')
+                for time in self.logs[intersection]:
+                    logs_file.write(str(time) + '\n')
 
             logs_file.close()
 
