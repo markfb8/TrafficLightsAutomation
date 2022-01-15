@@ -14,10 +14,10 @@ class Environment(gym.Env):
 
         self.action_space = spaces.Discrete(self.simulation.rows * self.simulation.cols * 2)
         self.observation_space = spaces.Dict({
-            'current_time': spaces.Box(low=0, high=2147483647, shape=(1,), dtype=np.int32),
+            # 'current_time': spaces.Box(low=0, high=2147483647, shape=(1,), dtype=np.int32),
             # 'average_waiting_time': spaces.Box(low=0, high=2147483647, shape=(1,), dtype=np.int32),
             'lights_settings': spaces.Box(low=0, high=1, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8),
-            'ready_to_switch': spaces.Box(low=0, high=1, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8),
+            # 'ready_to_switch': spaces.Box(low=0, high=1, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8),
             'horizontal_num_of_cars_waiting': spaces.Box(low=0, high=self.simulation.road_length, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8),
             'vertical_num_of_cars_waiting': spaces.Box(low=0, high=self.simulation.road_length, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8)
             # 'horizontal_waiting_time': spaces.Box(low=-1, high=65535, shape=(self.simulation.rows * self.simulation.cols, 1000), dtype=np.int32),
@@ -40,7 +40,7 @@ class Environment(gym.Env):
             current_observation = self.simulation.get_observation()
             learning_data.previous_observation = current_observation
 
-            reward = self.reward_function_7(previous_observation, action)
+            reward = self.reward_function_9(previous_observation, action)
         else:
             done = self.simulation.advance_step(action)
             current_observation = self.simulation.get_observation()
@@ -130,10 +130,10 @@ class Environment(gym.Env):
 
         return reward
 
-    def reward_function_5(self, previous_observation, current_observation):
-        return previous_observation['average_waiting_time'] - current_observation['average_waiting_time']
+    def reward_function_6(self, current_observation):
+        return - current_observation['average_waiting_time'][0]
 
-    def reward_function_6(self, previous_observation, action):
+    def reward_function_7(self, previous_observation, action):
         reward = 0
 
         if action < self.simulation.rows * self.simulation.cols:
@@ -142,7 +142,7 @@ class Environment(gym.Env):
 
         return reward
 
-    def reward_function_7(self, previous_observation, action):
+    def reward_function_8(self, previous_observation, action):
         reward = 0
 
         if action < self.simulation.rows * self.simulation.cols:
@@ -153,7 +153,14 @@ class Environment(gym.Env):
             if previous_observation['ready_to_switch'][action] == 0:
                 reward -= 1
 
-        # for intersection in range(self.simulation.rows * self.simulation.cols):
-        #    if intersection != action:
+        return reward
 
+    def reward_function_9(self, previous_observation, action):
+        reward = -4
+
+        if action < self.simulation.rows * self.simulation.cols:
+            if previous_observation['lights_settings'][action] == 1:
+                reward += previous_observation['vertical_num_of_cars_waiting'][action] - previous_observation['horizontal_num_of_cars_waiting'][action]
+            else:
+                reward += previous_observation['horizontal_num_of_cars_waiting'][action] - previous_observation['vertical_num_of_cars_waiting'][action]
         return reward

@@ -11,7 +11,7 @@ class Program:
         self.simulation = None
         self.logs = None
         self.operation = int(input('\nOPERATION TO PERFORM:\n1. Train\n2. Predict\n3. Standard\n4. Standard range\n'))
-        self.traffic_volume = int(input('\nTraffic density: (Lowest >   1 | 2 | 3 | 4 | 5 | 6   < Highest): '))
+        self.traffic_volume = int(input('\nTraffic density: (Lowest >   1 | 2 | 3 | 4 | 5   < Highest): '))
 
         if self.operation == 1:
             self.model_name = input('\nModel name: ')
@@ -91,8 +91,9 @@ class Program:
             model = PPO(policy='MultiInputPolicy', env=Environment(self.simulation, True), verbose=1)
 
         while True:
-            model.learn(total_timesteps=10240, n_eval_episodes=5)
+            model.learn(total_timesteps=2048*5, n_eval_episodes=5)
             model.save('models/' + self.model_name)
+            print('\033[94m' + 'saving model...' + '\033[0;0m')
 
     def predict(self):
         self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
