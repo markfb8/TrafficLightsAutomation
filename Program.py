@@ -91,7 +91,7 @@ class Program:
             model = PPO(policy='MultiInputPolicy', env=Environment(self.simulation, True), verbose=1)
 
         while True:
-            model.learn(total_timesteps=2048*5, n_eval_episodes=5)
+            model.learn(total_timesteps=8192, n_eval_episodes=1)
             model.save('models/' + self.model_name)
             print('\033[94m' + 'saving model...' + '\033[0;0m')
 

@@ -41,14 +41,16 @@ def manage_simulation_entry_points(simulation):
 def new_car(simulation, event):
     queue, _ = event.intersection.get_attributes_given_direction(event.direction)
 
-    simulation.cars_created = simulation.cars_created + 1
-    car = Car(simulation.current_time)
-    car.arrival_time = simulation.current_time + (simulation.road_length - queue.qsize()) * car.ONE_CAR_LENGTH_TRAVEL_TIME
-    car.expected_arrival_position = queue.qsize()
-    queue.put(car)
+    if queue.qsize() < 1000:
+        simulation.cars_created = simulation.cars_created + 1
+        car = Car(simulation.current_time)
+        car.arrival_time = simulation.current_time + (simulation.road_length - queue.qsize()) * car.ONE_CAR_LENGTH_TRAVEL_TIME
+        car.expected_arrival_position = queue.qsize()
+        queue.put(car)
+        if queue.qsize() == 1:
+            simulation.add_event(Event('MOVE_CAR', simulation.current_time + (simulation.road_length - queue.qsize()) * car.ONE_CAR_LENGTH_TRAVEL_TIME, event.direction, event.intersection))
+
     simulation.add_event(Event('NEW_CAR', event.time + calculate_added_time(simulation), event.direction, event.intersection))
-    if queue.qsize() == 1:
-        simulation.add_event(Event('MOVE_CAR', simulation.current_time + (simulation.road_length - queue.qsize()) * car.ONE_CAR_LENGTH_TRAVEL_TIME, event.direction, event.intersection))
 
 
 def calculate_added_time(simulation):
