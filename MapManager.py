@@ -50,17 +50,24 @@ def new_car(simulation, event):
         if queue.qsize() == 1:
             simulation.add_event(Event('MOVE_CAR', simulation.current_time + (simulation.road_length - queue.qsize()) * car.ONE_CAR_LENGTH_TRAVEL_TIME, event.direction, event.intersection))
 
-    simulation.add_event(Event('NEW_CAR', event.time + calculate_added_time(simulation), event.direction, event.intersection))
+    simulation.add_event(Event('NEW_CAR', event.time + calculate_added_time(simulation, event.direction), event.direction, event.intersection))
 
 
-def calculate_added_time(simulation):
+def calculate_added_time(simulation, direction):
+    time = 0
+
     if simulation.traffic_volume == 1:
-        return randint(30, 60)
+        time = randint(30, 60)
     elif simulation.traffic_volume == 2:
-        return randint(15, 30)
+        time = randint(15, 30)
     elif simulation.traffic_volume == 3:
-        return randint(6, 15)
+        time = randint(6, 15)
     elif simulation.traffic_volume == 4:
-        return randint(3, 6)
+        time = randint(3, 6)
     elif simulation.traffic_volume == 5:
-        return randint(1, 3)
+        time = randint(1, 3)
+
+    if direction == 'VERTICAL':
+        return time * simulation.vertical_density
+    else:
+        return time * (1 - simulation.vertical_density)

@@ -15,6 +15,9 @@ class Simulation:
 
         self.current_time = 0
         self.cars_created = 0
+        self.last_density_change = 0
+        self.vertical_density = 0.5
+        self.is_vertical_density_increasing = True
         self.event_list = []
         self.outer_intersection = Intersection(self, 99999, 99999)
         self.city_map = MapManager.create_map(self)
@@ -76,6 +79,21 @@ class Simulation:
 
         return observation
 
+    def change_traffic_density(self):
+        if self.current_time - self.last_density_change > 600:
+            if self.is_vertical_density_increasing:
+                if self.vertical_density < 0.8:
+                    self.vertical_density += 0.1
+                else:
+                    self.is_vertical_density_increasing = False
+            else:
+                if self.vertical_density > 0.2:
+                    self.vertical_density -= 0.1
+                else:
+                    self.is_vertical_density_increasing = True
+
+
+
     def change_all_lights(self):
         for row in self.city_map:
             for intersection in row:
@@ -91,6 +109,8 @@ class Simulation:
 
     def advance_step(self, action):
         self.change_state(action)
+
+        self.change_traffic_density()
 
         if self.current_time <= self.simulation_time:
             if self.event_list:
