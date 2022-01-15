@@ -50,7 +50,7 @@ class Simulation:
         # observation['current_time'] = [self.current_time]
         # observation['average_waiting_time'] = [self.get_average_waiting_time()[0]]
         observation['lights_settings'] = [0] * self.rows * self.cols
-        # observation['ready_to_switch'] = [self.current_time] * self.rows * self.cols
+        observation['ready_to_switch'] = [self.current_time] * self.rows * self.cols
         observation['vertical_num_of_cars'] = [0] * self.rows * self.cols
         observation['horizontal_num_of_cars'] = [0] * self.rows * self.cols
         # observation['vertical_num_of_cars_waiting'] = [0] * self.rows * self.cols
@@ -62,7 +62,7 @@ class Simulation:
             for j, intersection in enumerate(row):
                 flattened_index = i * self.cols + j
                 observation['lights_settings'][flattened_index] = 0 if intersection.green_light == 'VERTICAL' else 1
-                # observation['ready_to_switch'][flattened_index] = 1 if self.current_time - intersection.last_light_switch > 10 else 0
+                observation['ready_to_switch'][flattened_index] = 1 if self.current_time - intersection.last_light_switch > 10 else 0
 
                 for k, car in enumerate(intersection.v_queue.queue):
                     observation['vertical_num_of_cars'][flattened_index] += 1
