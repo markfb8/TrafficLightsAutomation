@@ -171,23 +171,18 @@ class Environment(gym.Env):
 
     def reward_function_10(self, previous_observation, action):
         if action < self.simulation.rows * self.simulation.cols:
-            print('vertical cars: ' + str(previous_observation['vertical_num_of_cars'][action]), 'horizontal cars: ' + str(previous_observation['horizontal_num_of_cars'][action]))
+            # print('vertical cars: ' + str(previous_observation['vertical_num_of_cars'][action]), 'horizontal cars: ' + str(previous_observation['horizontal_num_of_cars'][action]))
 
             reward = -10 if previous_observation['ready_to_switch'][action] == 0 else 0
             reward += - self.simulation.road_length / 2
 
             if previous_observation['lights_settings'][action] == 1:
-                reward += self.simulation.road_length if previous_observation['horizontal_num_of_cars'][action] == 0 else 0
-                if previous_observation['vertical_num_of_cars'][action] >= self.simulation.road_length * 0.8:
-                    reward += min(previous_observation['vertical_num_of_cars'][action] - self.simulation.road_length * 0.8, 6)
+                reward += min(previous_observation['vertical_num_of_cars'][action] - previous_observation['horizontal_num_of_cars'][action], self.simulation.road_length)
             else:
-                reward += 6 if previous_observation['vertical_num_of_cars'][action] == 0 else 0
-                if previous_observation['horizontal_num_of_cars'][action] >= self.simulation.road_length * 0.8:
-                    reward += min(previous_observation['horizontal_num_of_cars'][action] - self.simulation.road_length * 0.8, 6)
+                reward += min(previous_observation['horizontal_num_of_cars'][action] - previous_observation['vertical_num_of_cars'][action], self.simulation.road_length)
         else:
             reward = 0
 
-        print('action: ' + str(action) + ', reward: ' + str(reward))
+        # print('action: ' + str(action) + ', reward: ' + str(reward))
 
         return reward
-
