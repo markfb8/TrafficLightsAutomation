@@ -10,6 +10,7 @@ class Program:
     def __init__(self):
         self.simulation = None
         self.logs = None
+        self.logs_2 = None
         self.operation = int(input('\nOPERATION TO PERFORM:\n1. Train\n2. Predict\n3. Standard\n4. Standard range\n'))
         self.traffic_volume = int(input('\nTraffic density: (Lowest >   1 | 2 | 3 | 4   < Highest): '))
 
@@ -85,16 +86,22 @@ class Program:
     def manage_logs_2(self, action, operation):
         if operation == 'create':
             self.logs = [[] for _ in range(self.simulation.rows * self.simulation.cols)]
+            self.logs_2 = [[] for _ in range(self.simulation.rows * self.simulation.cols)]
         elif operation == 'update':
             if action == 1:
+                if self.logs[self.simulation.intersection_to_process]:
+                    self.logs_2[self.simulation.intersection_to_process].append(self.simulation.current_time - self.logs[self.simulation.intersection_to_process][-1])
                 self.logs[self.simulation.intersection_to_process].append(self.simulation.current_time)
         else:
             logs_file = open('./data/logs.txt', 'w')
+            logs_2_file = open('./data/logs_2.txt', 'w')
 
             for intersection in range(self.simulation.rows * self.simulation.cols):
                 logs_file.write('INTERSECTION NUMBER ' + str(intersection) + ':\n')
                 for time in self.logs[intersection]:
                     logs_file.write(str(time) + '\n')
+                for time in self.logs_2[intersection]:
+                    logs_2_file.write(str(time) + '\n')
 
             logs_file.close()
 

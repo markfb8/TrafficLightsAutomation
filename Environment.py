@@ -20,7 +20,7 @@ class Environment(gym.Env):
         observation_space_dictionary = dict()
         observation_space_dictionary['lights_settings'] = spaces.Box(low=0, high=1, shape=(1,), dtype=np.uint8)
         observation_space_dictionary['intersection_cars'] = spaces.Box(low=0, high=1000, shape=(2,), dtype=np.uint8)
-        observation_space_dictionary['input_cars'] = spaces.Box(low=0, high=1000, shape=(2,), dtype=np.uint8)
+        # observation_space_dictionary['input_cars'] = spaces.Box(low=0, high=1000, shape=(2,), dtype=np.uint8)
         observation_space_dictionary['output_cars'] = spaces.Box(low=0, high=1000, shape=(2,), dtype=np.uint8)
         self.observation_space = spaces.Dict(observation_space_dictionary)
 

@@ -62,7 +62,7 @@ class Simulation:
         observation = dict()
         observation['lights_settings'] = [int(intersection.green_light == 'HORIZONTAL')]
         observation['intersection_cars'] = [intersection.v_queue.qsize(), intersection.h_queue.qsize()]
-        observation['input_cars'] = [0 if intersection.v_in_intersection is None else v_in.v_queue.qsize(), 0 if intersection.h_in_intersection is None else h_in.h_queue.qsize()]
+        # observation['input_cars'] = [0 if intersection.v_in_intersection is None else v_in.v_queue.qsize(), 0 if intersection.h_in_intersection is None else h_in.h_queue.qsize()]
         observation['output_cars'] = [-1 if v_out.v_out_intersection is None else v_out.v_queue.qsize(), -1 if h_out.h_out_intersection is None else h_out.h_queue.qsize()]
 
         return observation
