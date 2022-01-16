@@ -72,8 +72,6 @@ def calculate_added_time(simulation, direction):
         time = randint(6, 15)
     elif simulation.traffic_volume == 4:
         time = randint(3, 6)
-    elif simulation.traffic_volume == 5:
-        time = randint(1, 3)
 
     if direction == 'VERTICAL':
         return time * simulation.vertical_density * 2

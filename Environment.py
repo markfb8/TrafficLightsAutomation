@@ -16,35 +16,20 @@ class Environment(gym.Env):
         self.simulation = simulation
         self.training = training
 
-        # self.action_space = spaces.Discrete(self.simulation.rows * self.simulation.cols * 2)
-        # observation_space_dictionary = dict()
-        # observation_space_dictionary['current_time'] = spaces.Box(low=0, high=2147483647, shape=(1,), dtype=np.int32)
-        # observation_space_dictionary['average_waiting_time'] = spaces.Box(low=0, high=2147483647, shape=(1,), dtype=np.int32)
-        # observation_space_dictionary['lights_settings'] = spaces.Box(low=0, high=1, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8)
-        # observation_space_dictionary['ready_to_switch'] = spaces.Box(low=0, high=1, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8)
-        # observation_space_dictionary['vertical_num_of_cars'] = spaces.Box(low=0, high=1000, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8)
-        # observation_space_dictionary['horizontal_num_of_cars'] = spaces.Box(low=0, high=1000, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8)
-        # observation_space_dictionary['vertical_num_of_cars_waiting'] = spaces.Box(low=0, high=1000, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8)
-        # observation_space_dictionary['horizontal_num_of_cars_waiting'] = spaces.Box(low=0, high=1000, shape=(self.simulation.rows * self.simulation.cols,), dtype=np.uint8)
-        # observation_space_dictionary['vertical_waiting_time'] = spaces.Box(low=-1, high=2147483647, shape=(self.simulation.rows * self.simulation.cols, 1000), dtype=np.int32)
-        # observation_space_dictionary['horizontal_waiting_time'] = spaces.Box(low=-1, high=2147483647, shape=(self.simulation.rows * self.simulation.cols, 1000), dtype=np.int32)
-        # self.observation_space = spaces.Dict(observation_space_dictionary)
-
         self.action_space = spaces.Discrete(2)
-        observation_space_dictionary_2 = dict()
-        observation_space_dictionary_2['lights_settings'] = spaces.Box(low=0, high=1, shape=(1, ), dtype=np.uint8)
-        observation_space_dictionary_2['intersection_cars'] = spaces.Box(low=0, high=1000, shape=(2, ), dtype=np.uint8)
-        observation_space_dictionary_2['input_cars'] = spaces.Box(low=0, high=1000, shape=(2,), dtype=np.uint8)
-        observation_space_dictionary_2['output_cars'] = spaces.Box(low=0, high=1000, shape=(2,), dtype=np.uint8)
-        self.observation_space = spaces.Dict(observation_space_dictionary_2)
+        observation_space_dictionary = dict()
+        observation_space_dictionary['lights_settings'] = spaces.Box(low=0, high=1, shape=(1,), dtype=np.uint8)
+        observation_space_dictionary['intersection_cars'] = spaces.Box(low=0, high=1000, shape=(2,), dtype=np.uint8)
+        observation_space_dictionary['input_cars'] = spaces.Box(low=0, high=1000, shape=(2,), dtype=np.uint8)
+        observation_space_dictionary['output_cars'] = spaces.Box(low=0, high=1000, shape=(2,), dtype=np.uint8)
+        self.observation_space = spaces.Dict(observation_space_dictionary)
 
     def reset(self, reset_simulation=True):
         print('\033[94m' + 'resetting environment...' + '\033[0;0m')
         if reset_simulation:
             self.simulation = Simulation(self.simulation.traffic_volume, self.simulation.rows, self.simulation.cols, self.simulation.road_length, self.simulation.simulation_time)
 
-        # observation = self.simulation.get_observation()
-        observation = self.simulation.get_observation_2()
+        observation = self.simulation.get_observation()
         learning_data.previous_observation = observation
 
         return observation
@@ -54,18 +39,14 @@ class Environment(gym.Env):
             previous_observation = learning_data.previous_observation
 
             done = self.simulation.advance_step(action)
-
-            # current_observation = self.simulation.get_observation()
-            current_observation = self.simulation.get_observation_2()
+            current_observation = self.simulation.get_observation()
 
             learning_data.previous_observation = current_observation
 
-            reward = self.definitive(previous_observation, action)
+            reward = self.definitive2x2(previous_observation, action)
         else:
             done = self.simulation.advance_step(action)
-
-            # current_observation = self.simulation.get_observation()
-            current_observation = self.simulation.get_observation_2()
+            current_observation = self.simulation.get_observation()
 
             reward = 0
 
@@ -259,19 +240,17 @@ class Environment(gym.Env):
                 else:
                     reward += 1 if prev_obs['num_of_cars'][0][1] > 8 else 0
 
-
-
             # if self.simulation.intersection_to_process == 2:
-                # print('action: ' + str(action) + ', reward: ' + str(reward))
-                # print('vertical cars: ' + str(prev_obs['num_of_cars'][0][0]), 'horizontal cars: ' + str(prev_obs['num_of_cars'][0][1]) + '\n')
+            # print('action: ' + str(action) + ', reward: ' + str(reward))
+            # print('vertical cars: ' + str(prev_obs['num_of_cars'][0][0]), 'horizontal cars: ' + str(prev_obs['num_of_cars'][0][1]) + '\n')
 
         return reward
 
-    def definitive(self, prev_obs, action):
+    def definitive2x2(self, prev_obs, action):
         reward = 0
 
-        vertical_load = prev_obs['intersection_cars'][0] # + prev_obs['input_cars'][0]
-        horizontal_load = prev_obs['intersection_cars'][1] # + prev_obs['input_cars'][1]
+        vertical_load = prev_obs['intersection_cars'][0]  # + prev_obs['input_cars'][0]
+        horizontal_load = prev_obs['intersection_cars'][1]  # + prev_obs['input_cars'][1]
 
         if prev_obs['lights_settings'][0] == 0:
             if horizontal_load > 2 * vertical_load:
@@ -300,18 +279,72 @@ class Environment(gym.Env):
             elif action == 1:
                 reward = -1
 
-        print('The vertical load is: ' + str(vertical_load))
-        print('The horizontal load is: ' + str(horizontal_load))
-        print('The green light is: ' + str('VERTICAL' if prev_obs['lights_settings'][0] == 0 else 'HORIZONTAL'))
-        print('The action is: ' + str('MAINTAIN' if action == 0 else 'CHANGE'))
-        print('The reward is: ' + str(reward))
-        print('\n')
+        if self.simulation.intersection_to_process == 20:
+            print('The vertical load is: ' + str(vertical_load))
+            print('The horizontal load is: ' + str(horizontal_load))
+            print('The green light is: ' + str('VERTICAL' if prev_obs['lights_settings'][0] == 0 else 'HORIZONTAL'))
+            print('The action is: ' + str('MAINTAIN' if action == 0 else 'CHANGE'))
+            print('The reward is: ' + str(reward))
+            print('\n')
 
         return reward
 
+    def definitive3x3(self, prev_obs, action):
+        reward = 0
 
+        vertical_load = prev_obs['intersection_cars'][0]
+        horizontal_load = prev_obs['intersection_cars'][1]
+        vertical_output_load = prev_obs['output_cars'][0]
+        horizontal_output_load = prev_obs['output_cars'][1]
 
+        if prev_obs['lights_settings'][0] == 0:
+            if horizontal_load - vertical_load > 6:
+                reward = 1 if action == 1 else -1
+            elif vertical_load - horizontal_load > 4:
+                reward = -1 if action == 1 else 1
 
+            elif vertical_output_load - horizontal_output_load > 6:
+                reward = 1 if action == 1 else -1
+            elif horizontal_output_load - vertical_output_load > 4:
+                reward = -1 if action == 1 else 1
 
+            elif vertical_load > 5 and horizontal_load > 5 and vertical_output_load - horizontal_output_load > 3:
+                reward = 1 if action == 1 else -1
 
+            elif vertical_output_load == 10:
+                reward = 1 if action == 1 else -1
 
+            elif action == 1:
+                reward = -1
+
+        if prev_obs['lights_settings'][0] == 1:
+            if vertical_load - horizontal_load > 6:
+                reward = 1 if action == 1 else -1
+            elif horizontal_load - vertical_load > 4:
+                reward = -1 if action == 1 else 1
+
+            elif horizontal_output_load - vertical_output_load > 6:
+                reward = 1 if action == 1 else -1
+            elif vertical_output_load - horizontal_output_load > 4:
+                reward = -1 if action == 1 else 1
+
+            elif horizontal_load > 5 and vertical_load > 5 and horizontal_output_load - vertical_output_load > 3:
+                reward = 1 if action == 1 else -1
+
+            elif horizontal_output_load == 10:
+                reward = 1 if action == 1 else -1
+
+            elif action == 1:
+                reward = -1
+
+            print('The intersection is: ' + str(self.simulation.intersection_to_process))
+            print('The vertical load is: ' + str(vertical_load))
+            print('The horizontal load is: ' + str(horizontal_load))
+            print('The vertical output load is: ' + str(vertical_output_load))
+            print('The horizontal output load is: ' + str(horizontal_output_load))
+            print('The green light is: ' + str('VERTICAL' if prev_obs['lights_settings'][0] == 0 else 'HORIZONTAL'))
+            print('The action is: ' + str('MAINTAIN' if action == 0 else 'CHANGE'))
+            print('The reward is: ' + str(reward))
+            print('\n')
+
+        return reward

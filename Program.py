@@ -11,7 +11,7 @@ class Program:
         self.simulation = None
         self.logs = None
         self.operation = int(input('\nOPERATION TO PERFORM:\n1. Train\n2. Predict\n3. Standard\n4. Standard range\n'))
-        self.traffic_volume = int(input('\nTraffic density: (Lowest >   1 | 2 | 3 | 4 | 5   < Highest): '))
+        self.traffic_volume = int(input('\nTraffic density: (Lowest >   1 | 2 | 3 | 4   < Highest): '))
 
         if self.operation == 1:
             self.model_name = input('\nModel name: ')
@@ -118,17 +118,14 @@ class Program:
         model = PPO.load('models/' + self.model_name, env=env)
         observation = env.reset(False)
 
-        # self.manage_logs([], 'create')
         self.manage_logs_2([], 'create')
         done = False
         while not done:
             action = model.predict(observation)
-            # self.manage_logs(action[0], 'update')
             self.manage_logs_2(action[0], 'update')
             observation, _, done, _ = env.step(action[0])
 
         self.print_statistics('Statistics:')
-        # self.manage_logs([], 'write')
         self.manage_logs_2([], 'write')
 
     def standard(self, additional_statistics_text=''):

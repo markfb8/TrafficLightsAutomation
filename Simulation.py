@@ -51,37 +51,6 @@ class Simulation:
         return average_waiting_time, cars_leaving_simulator
 
     def get_observation(self):
-        observation = dict()
-        # observation['current_time'] = [self.current_time]
-        # observation['average_waiting_time'] = [self.get_average_waiting_time()[0]]
-        observation['lights_settings'] = [0] * self.rows * self.cols
-        observation['ready_to_switch'] = [self.current_time] * self.rows * self.cols
-        observation['vertical_num_of_cars'] = [0] * self.rows * self.cols
-        observation['horizontal_num_of_cars'] = [0] * self.rows * self.cols
-        # observation['vertical_num_of_cars_waiting'] = [0] * self.rows * self.cols
-        # observation['horizontal_num_of_cars_waiting'] = [0] * self.rows * self.cols
-        # observation['vertical_waiting_time'] = [[-1] * 1000] * self.rows * self.cols
-        # observation['horizontal_waiting_time'] = [[-1] * 1000] * self.rows * self.cols
-
-        for i, row in enumerate(self.city_map):
-            for j, intersection in enumerate(row):
-                flattened_index = i * self.cols + j
-                observation['lights_settings'][flattened_index] = 0 if intersection.green_light == 'VERTICAL' else 1
-                observation['ready_to_switch'][flattened_index] = 1 if self.current_time - intersection.last_light_switch > 10 else 0
-
-                for k, car in enumerate(intersection.v_queue.queue):
-                    observation['vertical_num_of_cars'][flattened_index] += 1
-                    # observation['vertical_num_of_cars_waiting'][flattened_index] += 1 if self.current_time > car.arrival_time else 0
-                    # observation['vertical_waiting_time'][flattened_index][k] = self.current_time - car.arrival_time if self.current_time > car.arrival_time else -1
-
-                for k, car in enumerate(intersection.h_queue.queue):
-                    # observation['horizontal_num_of_cars_waiting'][flattened_index] += 1 if self.current_time > car.arrival_time else 0
-                    observation['horizontal_num_of_cars'][flattened_index] += 1
-                    # observation['horizontal_waiting_time'][flattened_index][k] = self.current_time - car.arrival_time if self.current_time >= car.arrival_time else -1
-
-        return observation
-
-    def get_observation_2(self):
         i = int(self.intersection_to_process / self.cols)
         j = self.intersection_to_process % self.cols
         intersection = self.city_map[i][j]
@@ -94,8 +63,7 @@ class Simulation:
         observation['lights_settings'] = [int(intersection.green_light == 'HORIZONTAL')]
         observation['intersection_cars'] = [intersection.v_queue.qsize(), intersection.h_queue.qsize()]
         observation['input_cars'] = [0 if intersection.v_in_intersection is None else v_in.v_queue.qsize(), 0 if intersection.h_in_intersection is None else h_in.h_queue.qsize()]
-        observation['output_cars'] = [0 if v_out.v_out_intersection is None else v_out.v_queue.qsize(), 0 if h_out.h_out_intersection is None else h_out.h_queue.qsize()]
-
+        observation['output_cars'] = [-1 if v_out.v_out_intersection is None else v_out.v_queue.qsize(), -1 if h_out.h_out_intersection is None else h_out.h_queue.qsize()]
 
         return observation
 
@@ -118,14 +86,6 @@ class Simulation:
                 intersection.switch_traffic_light()
 
     def change_state(self, action):
-        # The first half of actions correspond to switching the light of the corresponding intersection, the other half to not changing anything
-        if action < self.rows * self.cols:
-            i = int(action / self.cols)
-            j = action % self.cols
-
-            self.city_map[i][j].switch_traffic_light()
-
-    def change_state_2(self, action):
         # 0 = Not change light, 1 = Change light
         if action == 1:
             i = int(self.intersection_to_process / self.cols)
@@ -140,7 +100,7 @@ class Simulation:
 
     def advance_step(self, action):
         # self.change_state(action)
-        self.change_state_2(action)
+        self.change_state(action)
 
         self.change_traffic_density()
 
