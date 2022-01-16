@@ -82,6 +82,22 @@ class Program:
 
             logs_file.close()
 
+    def manage_logs_2(self, action, operation):
+        if operation == 'create':
+            self.logs = [[] for _ in range(self.simulation.rows * self.simulation.cols)]
+        elif operation == 'update':
+            if action == 1:
+                self.logs[self.simulation.intersection_to_process].append(self.simulation.current_time)
+        else:
+            logs_file = open('./data/logs.txt', 'w')
+
+            for intersection in range(self.simulation.rows * self.simulation.cols):
+                logs_file.write('INTERSECTION NUMBER ' + str(intersection) + ':\n')
+                for time in self.logs[intersection]:
+                    logs_file.write(str(time) + '\n')
+
+            logs_file.close()
+
     def train(self):
         self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)
 
@@ -91,7 +107,7 @@ class Program:
             model = PPO(policy='MultiInputPolicy', env=Environment(self.simulation, True), verbose=1)
 
         while True:
-            model.learn(total_timesteps=8192 * self.simulation.rows * self.cols, n_eval_episodes=1)
+            model.learn(total_timesteps=16384, n_eval_episodes=1)
             model.save('models/' + self.model_name)
             print('\033[94m' + 'saving model...' + '\033[0;0m')
 
@@ -102,15 +118,18 @@ class Program:
         model = PPO.load('models/' + self.model_name, env=env)
         observation = env.reset(False)
 
-        self.manage_logs([], 'create')
+        # self.manage_logs([], 'create')
+        self.manage_logs_2([], 'create')
         done = False
         while not done:
             action = model.predict(observation)
-            self.manage_logs(action[0], 'update')
+            # self.manage_logs(action[0], 'update')
+            self.manage_logs_2(action[0], 'update')
             observation, _, done, _ = env.step(action[0])
 
         self.print_statistics('Statistics:')
-        self.manage_logs([], 'write')
+        # self.manage_logs([], 'write')
+        self.manage_logs_2([], 'write')
 
     def standard(self, additional_statistics_text=''):
         self.simulation = Simulation(self.traffic_volume, self.rows, self.cols, self.road_length, self.simulation_time)

@@ -11,6 +11,8 @@ class Intersection:
         self.cars_crossed = 0
         self.v_queue = Queue(max_size_v)
         self.h_queue = Queue(max_size_h)
+        self.v_in_intersection = None
+        self.h_in_intersection = None
         self.v_out_intersection = None
         self.h_out_intersection = None
 

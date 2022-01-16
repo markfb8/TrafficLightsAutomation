@@ -1,3 +1,4 @@
+import random
 import MapManager
 from Intersection import Intersection
 
@@ -17,7 +18,8 @@ class Simulation:
         self.cars_created = 0
         self.last_density_change = 0
         self.vertical_density = 0.5
-        self.is_vertical_density_increasing = True
+        self.is_vertical_density_increasing = random.choice([True, False])
+        self.intersection_to_process = 0
         self.event_list = []
         self.outer_intersection = Intersection(self, 99999, 99999)
         self.city_map = MapManager.create_map(self)
@@ -79,6 +81,24 @@ class Simulation:
 
         return observation
 
+    def get_observation_2(self):
+        i = int(self.intersection_to_process / self.cols)
+        j = self.intersection_to_process % self.cols
+        intersection = self.city_map[i][j]
+        v_in = intersection.v_in_intersection
+        h_in = intersection.h_in_intersection
+        v_out = intersection.v_out_intersection
+        h_out = intersection.h_out_intersection
+
+        observation = dict()
+        observation['lights_settings'] = [int(intersection.green_light == 'HORIZONTAL')]
+        observation['intersection_cars'] = [intersection.v_queue.qsize(), intersection.h_queue.qsize()]
+        observation['input_cars'] = [0 if intersection.v_in_intersection is None else v_in.v_queue.qsize(), 0 if intersection.h_in_intersection is None else h_in.h_queue.qsize()]
+        observation['output_cars'] = [0 if v_out.v_out_intersection is None else v_out.v_queue.qsize(), 0 if h_out.h_out_intersection is None else h_out.h_queue.qsize()]
+
+
+        return observation
+
     def change_traffic_density(self):
         if self.current_time - self.last_density_change > 600:
             if self.is_vertical_density_increasing:
@@ -92,8 +112,6 @@ class Simulation:
                 else:
                     self.is_vertical_density_increasing = True
 
-
-
     def change_all_lights(self):
         for row in self.city_map:
             for intersection in row:
@@ -102,13 +120,27 @@ class Simulation:
     def change_state(self, action):
         # The first half of actions correspond to switching the light of the corresponding intersection, the other half to not changing anything
         if action < self.rows * self.cols:
-            i = int(action/self.cols)
+            i = int(action / self.cols)
             j = action % self.cols
 
             self.city_map[i][j].switch_traffic_light()
 
+    def change_state_2(self, action):
+        # 0 = Not change light, 1 = Change light
+        if action == 1:
+            i = int(self.intersection_to_process / self.cols)
+            j = self.intersection_to_process % self.cols
+
+            self.city_map[i][j].switch_traffic_light()
+
+        if self.intersection_to_process < self.rows * self.cols - 1:
+            self.intersection_to_process += 1
+        else:
+            self.intersection_to_process = 0
+
     def advance_step(self, action):
-        self.change_state(action)
+        # self.change_state(action)
+        self.change_state_2(action)
 
         self.change_traffic_density()
 

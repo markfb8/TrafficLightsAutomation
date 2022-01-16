@@ -17,12 +17,20 @@ def create_map(simulation):
         for j, intersection in enumerate(row):
             if i % 2 == 0:  # If in a even row (right connection)
                 intersection.h_out_intersection = city_map[i][j + 1] if j != simulation.cols - 1 else simulation.outer_intersection
+                if j != simulation.cols - 1:
+                    city_map[i][j + 1].h_in_intersection = intersection
             else:  # If in a odd row (left connection)
                 intersection.h_out_intersection = city_map[i][j - 1] if j != 0 else simulation.outer_intersection
+                if j != 0:
+                    city_map[i][j - 1].h_in_intersection = intersection
             if j % 2 == 0:  # If in a even column (down connection)
                 intersection.v_out_intersection = city_map[i + 1][j] if i != simulation.rows - 1 else simulation.outer_intersection
+                if i != simulation.rows - 1:
+                    city_map[i + 1][j].v_in_intersection = intersection
             else:  # If in a odd column (up connection)
                 intersection.v_out_intersection = city_map[i - 1][j] if i != 0 else simulation.outer_intersection
+                if i != 0:
+                    city_map[i - 1][j].v_in_intersection = intersection
 
     return city_map
 
@@ -68,6 +76,6 @@ def calculate_added_time(simulation, direction):
         time = randint(1, 3)
 
     if direction == 'VERTICAL':
-        return time * simulation.vertical_density
+        return time * simulation.vertical_density * 2
     else:
-        return time * (1 - simulation.vertical_density)
+        return time * (1 - simulation.vertical_density) * 2
