@@ -91,6 +91,8 @@ class Program:
             if action == 1:
                 if self.logs[self.simulation.intersection_to_process]:
                     self.logs_2[self.simulation.intersection_to_process].append(self.simulation.current_time - self.logs[self.simulation.intersection_to_process][-1])
+                else:
+                    self.logs_2[self.simulation.intersection_to_process].append(self.simulation.current_time)
                 self.logs[self.simulation.intersection_to_process].append(self.simulation.current_time)
         else:
             logs_file = open('./data/logs.txt', 'w')
