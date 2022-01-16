@@ -74,6 +74,6 @@ def calculate_added_time(simulation, direction):
         time = randint(3, 6)
 
     if direction == 'VERTICAL':
-        return time * simulation.vertical_density
+        return time * simulation.vertical_density * 2
     else:
-        return time * (1 - simulation.vertical_density)
+        return time * (1 - simulation.vertical_density) * 2
